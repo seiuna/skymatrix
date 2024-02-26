@@ -14,6 +14,7 @@
     "MixinBlockModelRenderer",
     "MixinCamera",
     "MixinClientChunkManager",
+    "MixinClientCommonNetworkHandler",
     "MixinClientPlayerEntity",
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
@@ -25,6 +26,7 @@
     "MixinLivingEntityRenderer",
     "MixinMinecraftClient",
     "MixinMouse",
+    "MixinSplashOverlay",
     "MixinTerrainRenderContext"
   ],
   "injectors": {

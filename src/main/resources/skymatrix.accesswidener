@@ -4,3 +4,5 @@ accessible field net/minecraft/client/gui/hud/PlayerListHud ENTRY_ORDERING Ljava
 accessible	method	net/minecraft/client/Mouse	onMouseButton (JIII)V
 accessible method net/minecraft/client/MinecraftClient doAttack ()Z
 accessible method net/minecraft/client/MinecraftClient doItemUse ()V
+accessible method net/minecraft/client/MinecraftClient handleInputEvents ()V
+accessible method net/minecraft/client/MinecraftClient handleBlockBreaking (Z)V
