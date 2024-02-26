@@ -1,9 +1,7 @@
 package cn.seiua.skymatrix.mixin.mixins;
 
-import cn.seiua.skymatrix.event.events.ClientPacketEvent;
 import cn.seiua.skymatrix.event.events.ServerPacketEvent;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
-import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.*;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -14,12 +12,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class MixinClientPlayNetworkHandler {
 
 
-    @Inject(at = @At("HEAD"), method = "sendPacket", cancellable = true)
-    public void onPacket(Packet<?> packet, CallbackInfo callbackInfo) {
-        ClientPacketEvent packetEvent = new ClientPacketEvent(packet);
-        packetEvent.call();
-        if (packetEvent.isCancelled()) callbackInfo.cancel();
-    }
+
 
 
     @Inject(at = @At("HEAD"), method = "onEntitySpawn", cancellable = true)
@@ -52,15 +45,6 @@ public abstract class MixinClientPlayNetworkHandler {
 
     }
 
-    @Inject(at = @At("HEAD"), method = "onPlayerSpawn", cancellable = true)
-    public void onPlayerSpawn(PlayerSpawnS2CPacket var1, CallbackInfo callbackInfo) {
-
-        ServerPacketEvent event = new ServerPacketEvent(var1);
-        event.call();
-        if (event.isCancelled()) callbackInfo.cancel();
-
-
-    }
 
     @Inject(at = @At("HEAD"), method = "onEntityAnimation", cancellable = true)
     public void onEntityAnimation(EntityAnimationS2CPacket var1, CallbackInfo callbackInfo) {
@@ -262,25 +246,25 @@ public abstract class MixinClientPlayNetworkHandler {
 
     }
 
-    @Inject(at = @At("HEAD"), method = "onCustomPayload", cancellable = true)
-    public void onCustomPayload(CustomPayloadS2CPacket var1, CallbackInfo callbackInfo) {
-
-        ServerPacketEvent event = new ServerPacketEvent(var1);
-        event.call();
-        if (event.isCancelled()) callbackInfo.cancel();
-
-
-    }
-
-    @Inject(at = @At("HEAD"), method = "onDisconnect", cancellable = true)
-    public void onDisconnect(DisconnectS2CPacket var1, CallbackInfo callbackInfo) {
-
-        ServerPacketEvent event = new ServerPacketEvent(var1);
-        event.call();
-        if (event.isCancelled()) callbackInfo.cancel();
-
-
-    }
+//    @Inject(at = @At("HEAD"), method = "onCustomPayload", cancellable = true)
+//    public void onCustomPayload(CustomPayloadS2CPacket var1, CallbackInfo callbackInfo) {
+//
+//        ServerPacketEvent event = new ServerPacketEvent(var1);
+//        event.call();
+//        if (event.isCancelled()) callbackInfo.cancel();
+//
+//
+//    }
+//
+//    @Inject(at = @At("HEAD"), method = "onDisconnect", cancellable = true)
+//    public void onDisconnect(DisconnectS2CPacket var1, CallbackInfo callbackInfo) {
+//
+//        ServerPacketEvent event = new ServerPacketEvent(var1);
+//        event.call();
+//        if (event.isCancelled()) callbackInfo.cancel();
+//
+//
+//    }
 
     @Inject(at = @At("HEAD"), method = "onEntityStatus", cancellable = true)
     public void onEntityStatus(EntityStatusS2CPacket var1, CallbackInfo callbackInfo) {
@@ -332,15 +316,15 @@ public abstract class MixinClientPlayNetworkHandler {
 
     }
 
-    @Inject(at = @At("HEAD"), method = "onKeepAlive", cancellable = true)
-    public void onKeepAlive(KeepAliveS2CPacket var1, CallbackInfo callbackInfo) {
-
-        ServerPacketEvent event = new ServerPacketEvent(var1);
-        event.call();
-        if (event.isCancelled()) callbackInfo.cancel();
-
-
-    }
+//    @Inject(at = @At("HEAD"), method = "onKeepAlive", cancellable = true)
+//    public void onKeepAlive(KeepAliveS2CPacket var1, CallbackInfo callbackInfo) {
+//
+//        ServerPacketEvent event = new ServerPacketEvent(var1);
+//        event.call();
+//        if (event.isCancelled()) callbackInfo.cancel();
+//
+//
+//    }
 
     @Inject(at = @At("HEAD"), method = "onChunkData", cancellable = true)
     public void onChunkData(ChunkDataS2CPacket var1, CallbackInfo callbackInfo) {
@@ -361,16 +345,16 @@ public abstract class MixinClientPlayNetworkHandler {
 
 
     }
-
     //
-//    public void onUnloadChunk(UnloadChunkS2CPacket var1, CallbackInfo callbackInfo){
-//
-//        ServerPacketEvent event=new ServerPacketEvent(var1);
-//        event.call();
-//        if(event.isCancelled())callbackInfo.cancel();
-//
-//
-//    }
+    @Inject(at = @At("HEAD"), method = "onUnloadChunk", cancellable = true)
+    public void onUnloadChunk(UnloadChunkS2CPacket var1, CallbackInfo callbackInfo) {
+
+        ServerPacketEvent event = new ServerPacketEvent(var1);
+        event.call();
+        if (event.isCancelled()) callbackInfo.cancel();
+
+
+    }
 //
 //    public void onWorldEvent(WorldEventS2CPacket var1, CallbackInfo callbackInfo){
 //

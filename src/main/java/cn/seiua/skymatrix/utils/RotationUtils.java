@@ -6,6 +6,7 @@ import cn.seiua.skymatrix.client.Rotation;
 import cn.seiua.skymatrix.client.RotationFaker;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
+import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
@@ -44,6 +45,9 @@ public enum RotationUtils {
         return toRotation(entity.getEyePos().subtract(0, 0.2, 0).subtract(SkyMatrix.mc.player.getEyePos()));
     }
 
+    public static Rotation toRotation(BlockPos blockPos) {
+        return toRotation(blockPos.toCenterPos().subtract(SkyMatrix.mc.player.getEyePos()));
+    }
     public static Rotation getNeededRotations(Vec3d vec) {
         Vec3d eyesPos = getEyesPos();
 

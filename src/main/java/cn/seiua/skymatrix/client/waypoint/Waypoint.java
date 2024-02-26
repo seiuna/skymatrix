@@ -26,6 +26,7 @@ import cn.seiua.skymatrix.render.BlockTextTarget;
 import cn.seiua.skymatrix.utils.ColorUtils;
 import cn.seiua.skymatrix.utils.MathUtils;
 import cn.seiua.skymatrix.utils.RenderUtils;
+import cn.seiua.skymatrix.utils.RotationUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -444,11 +445,11 @@ public class Waypoint extends Screen implements Hud {
     int v = 0;
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
 
-        v += amount * -1;
+        v += verticalAmount * -1;
         if (v < 0) v = 0;
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
 
@@ -514,6 +515,16 @@ public class Waypoint extends Screen implements Hud {
         float startX = x + 40;
         float startY = y + 40;
         ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "Waypoint edit hud");
+        startY += 30;
+        ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, SkyMatrix.mc.player.getEyePos().toString() + "   " + SkyMatrix.mc.player.getPos().toString());
+//        0.54
+        assert SkyMatrix.mc.world != null;
+        BlockHitResult hitResult = (BlockHitResult) SkyMatrix.mc.player.raycast(100, 0, false);
+        Vec3d bp = hitResult.getBlockPos().toCenterPos().add(0, 0.5, 0);
+
+        Rotation rotation = RotationUtils.toRotation(bp.subtract(SkyMatrix.mc.player.getPos().add(0, 1.54, 0)));
+        startY += 30;
+        ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "aaa: " + rotation.getPitch() + "    " + rotation.getYaw());
         startY += 30;
         ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "Current status: " + this.status);
         startY += 30;

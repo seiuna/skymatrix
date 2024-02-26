@@ -5,6 +5,7 @@ import cn.seiua.skymatrix.client.component.*;
 import cn.seiua.skymatrix.client.config.Setting;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.ClientTickEvent;
+import cn.seiua.skymatrix.event.events.HandleKeyInputBeforeEvent;
 import com.google.common.collect.EvictingQueue;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
@@ -44,10 +45,35 @@ public final class Client {
 
     }
 
+    private boolean keepBlockBreaking;
+
+    public boolean isKeepBlockBreaking() {
+        return keepBlockBreaking;
+    }
+
+    public void setKeepBlockBreaking(boolean keepBlockBreaking) {
+        this.keepBlockBreaking = keepBlockBreaking;
+        if (!keepBlockBreaking) {
+            SkyMatrix.mc.options.attackKey.setPressed(false);
+
+        }
+    }
+
+    @EventTarget
+    private void onHandleKeyInputBeforeEvent(HandleKeyInputBeforeEvent event) {
+        if (keepBlockBreaking) {
+            SkyMatrix.mc.options.attackKey.setPressed(true);
+            SkyMatrix.mc.attackCooldown = 0;
+            SkyMatrix.mc.handleBlockBreaking(true);
+
+        }
+
+    }
     private boolean flag;
 
     @EventTarget
     public void ClientTickEvent(ClientTickEvent e) {
+
         if (setting.title.getValue() != "") {
             SkyMatrix.mc.getWindow().setTitle(setting.title.getValue());
         }

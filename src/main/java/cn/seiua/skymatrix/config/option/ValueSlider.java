@@ -28,6 +28,10 @@ public class ValueSlider implements Serializable, UIComponent {
         return value;
     }
 
+    public int getIntValue() {
+        return value.intValue();
+    }
+
     public void setValue(Number value) {
 
         this.value = value;

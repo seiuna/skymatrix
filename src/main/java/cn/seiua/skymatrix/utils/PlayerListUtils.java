@@ -16,7 +16,7 @@ import java.util.List;
 public final class PlayerListUtils {
 
     private static final MinecraftClient mc = MinecraftClient.getInstance();
-    private static final Ordering<PlayerListEntry> playerOrdering = Ordering.from(new PlayerComparator());
+    public static final Ordering<PlayerListEntry> playerOrdering = Ordering.from(new PlayerComparator());
 
     public static final Ordering<PlayerListEntry> playerInfoOrdering2 = new Ordering<PlayerListEntry>() {
         @Override

@@ -66,7 +66,9 @@ public class BanInfo implements Hud {
         int v = Math.abs(this.currnet.getRecord().getStaff_total() - this.last.getRecord().getStaff_total());
         ban = v;
         if (ban > 19) {
-            this.callBackMap.values().forEach((e) -> e.callBack(v));
+
+            this.callBackMap.values().stream().toList().forEach((e) -> e.callBack(v));
+
             this.message.sendWarningMessage("ban wave!");
         }
 

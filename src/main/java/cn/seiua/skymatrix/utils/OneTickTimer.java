@@ -2,22 +2,30 @@ package cn.seiua.skymatrix.utils;
 
 import cn.seiua.skymatrix.client.Run;
 
+import java.util.function.IntSupplier;
+
 public class OneTickTimer implements TickTimer {
 
     private int tick;
-    private int targetTick;
 
+    IntSupplier targetTick;
     private Run callBack;
 
     OneTickTimer(int tick, Run callBack) {
         this.tick = tick;
-        this.targetTick = tick;
+        this.targetTick = () -> tick;
+        this.callBack = callBack;
+    }
+
+    OneTickTimer(IntSupplier intSupplier, Run callBack) {
+        this.tick = tick;
+        this.targetTick = intSupplier;
         this.callBack = callBack;
     }
 
     @Override
     public void reset() {
-        tick = targetTick;
+        tick = targetTick.getAsInt();
     }
 
     public int getTick() {

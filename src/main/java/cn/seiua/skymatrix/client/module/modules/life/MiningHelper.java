@@ -1,6 +1,7 @@
 package cn.seiua.skymatrix.client.module.modules.life;
 
 import cn.seiua.skymatrix.SkyMatrix;
+import cn.seiua.skymatrix.client.Client;
 import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.RotationFaker;
 import cn.seiua.skymatrix.client.SmoothRotation;
@@ -12,6 +13,7 @@ import cn.seiua.skymatrix.client.module.Signs;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.config.option.MultipleChoice;
+import cn.seiua.skymatrix.config.option.ToggleSwitch;
 import cn.seiua.skymatrix.config.option.ValueSlider;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.ClientTickEvent;
@@ -48,10 +50,19 @@ public class MiningHelper implements IToggle {
     ValueSlider angle = new ValueSlider(50, 0, 180, 0.1f);
     @Value(name = "blocks")
     MultipleChoice blocks = new MultipleChoice(SkyBlockUtils.getAllOre(), Icons.ORE);
-
+    public boolean hold = false;
+    public ArrayList<String> hold_block = new ArrayList<>();
+    @Value(name = "mouse down")
+    ToggleSwitch mouse = new ToggleSwitch(true);
 
     private List<BlockPos> blockPos;
     private BlockPos target;
+    @Use
+    Client client;
+    private int holdTick = 0;
+    private static final int RANGE = 10;
+    private HashMap<String, Integer> black = new HashMap<>();
+    private Vec3d holdVec;
 
     public boolean isTarget(BlockPos bp) {
         String name1 = (SkyMatrix.mc.world.getBlockState(bp).getBlock().getName()).getString();
@@ -65,16 +76,16 @@ public class MiningHelper implements IToggle {
         name = SkyBlockUtils.getNameByMapper(name);
         if (SkyMatrix.mc.world.getBlockState(bp).isAir() || SkyMatrix.mc.world.isWater(bp) || SkyMatrix.mc.world.getFluidState(bp).getFluid().isIn(FluidTags.LAVA))
             return false;
-        if (blocks.value.containsKey(name)) {
+        if (blocks.value.containsKey(name) && !hold) {
             if (blocks.value.get(name)) {
                 return true;
             }
         }
+        if (hold_block.contains(name) && hold) {
+            return true;
+        }
         return false;
     }
-
-    private static final int RANGE = 10;
-    private HashMap<String, Integer> black = new HashMap<>();
 
     @EventTarget
     public void onTick(ClientTickEvent e) {
@@ -82,16 +93,16 @@ public class MiningHelper implements IToggle {
 
 
         }
-        if (SkyMatrix.mc.currentScreen == null && SkyMatrix.mc.options.attackKey.isPressed()) {
+
+        client.setKeepBlockBreaking(!mouse.isValue());
+
+        if ((!mouse.isValue() || (SkyMatrix.mc.currentScreen == null && SkyMatrix.mc.options.attackKey.isPressed())) || hold) {
             ItemStack is = SkyMatrix.mc.player.getInventory().getMainHandStack();
             String type = SkyBlockUtils.getItemType(is);
             String name = is.getItem().toString().toLowerCase();
             if (name.contains("Air")) return;
             if ((name.contains("pickaxe") || name.contains("hoe") || name.contains("Axe") || name.contains("shovel")) || ((type != null) && (type.equals("AXE") || type.equals("DRILL") || type.equals("PICKAXE") || type.equals("SHOVEL") || type.equals("HOE")))) {
-
-
                 blockPos = new ArrayList<>();
-
                 Vec3d viewPos = Vec3d.fromPolar(rotationFaker.getServerPitch(), rotationFaker.getServerYaw());
                 Vec3d viewc = SkyMatrix.mc.player.getRotationVecClient();
                 Vec3d playerPos = SkyMatrix.mc.player.getEyePos();
@@ -105,6 +116,9 @@ public class MiningHelper implements IToggle {
                     for (int j = 0; j < RANGE; j++) {
                         for (int k = 0; k < RANGE; k++) {
                             BlockPos cp = blockPos1.add(i - RANGE / 2, j - RANGE / 2, k - RANGE / 2);
+                            if (black.getOrDefault(String.valueOf(Objects.hash(cp.getX(), cp.getY(), cp.getZ())), 0) > 0) {
+                                continue;
+                            }
                             if (MathUtils.calculateAngle(viewc, cp.toCenterPos().subtract(playerPos)) > angle.getValue().doubleValue())
                                 continue;
                             if (!isTarget(cp)) {
@@ -136,8 +150,16 @@ public class MiningHelper implements IToggle {
                 }
                 if (flag != 0) {
                     Vec3d vec3d1 = targetVec.multiply(targetVec.length());
-                    smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 1.4f, null, false);
-                    black.put(String.valueOf(Objects.hash(this.target.getX(), this.target.getY(), this.target.getZ())), 20);
+                    if (!vec3d1.equals(holdVec)) {
+                        holdTick = 0;
+                        holdVec = vec3d1;
+                    } else {
+                        holdTick++;
+                        if (holdTick > 60) {
+                            black.put(String.valueOf(Objects.hash(this.target.getX(), this.target.getY(), this.target.getZ())), 20);
+                        }
+                    }
+                    smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 1.4f, null, true);
                 } else {
 
                 }
@@ -145,7 +167,6 @@ public class MiningHelper implements IToggle {
             }
         }
     }
-
     private static final ArrayList<Vec3d> SHIFTING = new ArrayList<>();
 
     static {
@@ -199,7 +220,6 @@ public class MiningHelper implements IToggle {
     public void onRender(WorldRenderEvent e) {
         if (target == null) return;
         HitResult hitResult = SkyMatrix.mc.crosshairTarget;
-
         if (hitResult instanceof BlockHitResult) {
             BlockHitResult blockHitResult = (BlockHitResult) hitResult;
             if (!blockHitResult.getBlockPos().equals(target)) {
@@ -221,6 +241,8 @@ public class MiningHelper implements IToggle {
     @Override
     public void disable() {
         this.target = null;
+        client.setKeepBlockBreaking(false);
+
     }
 
     @Override

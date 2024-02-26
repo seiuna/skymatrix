@@ -22,6 +22,7 @@ public class SkyBlockUtils {
         oreMapper.put("dark_prismarine", "low_mithril");
         oreMapper.put("gray_wool", "lack_mithril");
         oreMapper.put("cyan_terracotta", "shit_mithril");
+        oreMapper.put("polished_diorite", "titanium_ore");
     }
 
     public static String getNameByMapper(String name) {
@@ -42,6 +43,7 @@ public class SkyBlockUtils {
         map.put("emerald_ore", false);
         map.put("diamond_ore", false);
         map.put("nether_quartz_ore", false);
+
         map.put("rich_mithril", false);
         map.put("medium_mithril", false);
         map.put("poor_mithril", false);
@@ -189,7 +191,7 @@ public class SkyBlockUtils {
         if (itemStack.getNbt() == null) return null;
         NbtList nbtList = itemStack.getNbt().getCompound("display").getList(LORE_KEY, NbtElement.STRING_TYPE);
         String target = nbtList.getString(nbtList.size() - 1);
-        MutableText mutableText2 = Text.Serializer.fromJson(target);
+        MutableText mutableText2 = Text.Serialization.fromJson(target);
         if (mutableText2 == null) return null;
         target = mutableText2.getString();
         if (target.contains("BOW")) {

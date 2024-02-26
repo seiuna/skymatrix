@@ -3,10 +3,7 @@ package cn.seiua.skymatrix.client.module.modules.life;
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.GoalBlock;
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.IToggle;
-import cn.seiua.skymatrix.client.Rotation;
-import cn.seiua.skymatrix.client.RotationFaker;
-import cn.seiua.skymatrix.client.SmoothRotation;
+import cn.seiua.skymatrix.client.*;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
@@ -21,6 +18,7 @@ import cn.seiua.skymatrix.client.waypoint.WPProcess;
 import cn.seiua.skymatrix.client.waypoint.Waypoint;
 import cn.seiua.skymatrix.client.waypoint.WaypointEntity;
 import cn.seiua.skymatrix.client.waypoint.WaypointGroupEntity;
+import cn.seiua.skymatrix.config.Desc;
 import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
@@ -49,6 +47,7 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
+import net.minecraft.util.math.Vec2f;
 import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
@@ -71,24 +70,30 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     @Value(name = "keyBind")
     public KeyBind keyBind = new KeyBind(List.of(), ReflectUtils.getModuleName(this));
     @Value(name = "farm hud")
-    public ClientHud clientHud = new ClientHud(100, 100, true, this);
+    @Desc("将在未来删除")
+    public ClientHud clientHud = new ClientHud(100, 100, false, this);
 
     @Value(name = "mode")
+    @Desc("可选 legit normal manual")
     SingleChoice<String> mode = new SingleChoice<>(List.of("legit", "normal", "manual"), Icons.MODE);
     @Value(name = "angle")
     @Hide(following = "mode", value = "normal&manual")
     @Sign(sign = Signs.BETA)
+    @Desc("可以破坏的最大角度仅在normal和manual中可用")
     ValueSlider angle = new ValueSlider(50, 0, 180, 0.1f);
     @Value(name = "range")
     @Hide(following = "mode", value = "normal&manual")
     @Sign(sign = Signs.BETA)
+    @Desc("可以破坏的最大距离仅在normal和manual中可用")
     ValueSlider range = new ValueSlider(4, 0, 6, 1);
     @Value(name = "lock slot")
     @Sign(sign = Signs.BETA)
+    @Desc("是否锁定你的物品栏。")
     ToggleSwitch lockSlot = new ToggleSwitch(false);
     @Value(name = "crops")
     @Hide(following = "mode", value = "normal&manual")
     @Sign(sign = Signs.BETA)
+    @Desc("在normal和manual模式中可以破坏的农作物.")
     ToggleSwitch crops = new ToggleSwitch(false);
     @Value(name = "blocks")
     @Hide(following = "crops")
@@ -97,22 +102,37 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     @Value(name = "waypoint")
     @Hide(following = "mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("一个路径点，请以FM开头")
     WaypointSelect waypointName = new WaypointSelect(null, "FM");
+    @Value(name = "anti afk")
+    @Hide(following = "mode&", value = "legit&normal")
+    @Sign(sign = Signs.BETA)
+    @Desc("afk")
+    ToggleSwitch afk = new ToggleSwitch(false);
+    @Value(name = "delay")
+    @Hide(following = "mode&anti afk", value = "legit&normal")
+    @Sign(sign = Signs.BETA)
+    @Desc("afk")
+    ValueSlider delay = new ValueSlider(67, 0, 600, 1);
     @Value(name = "auto pause")
     @Hide(following = "mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("是否启用自动暂停")
     ToggleSwitch pause = new ToggleSwitch(false);
     @Value(name = "ban wave")
     @Hide(following = "mode&auto pause", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("是否在ban wave期间暂停farminghelper")
     ToggleSwitch banWave = new ToggleSwitch(false);
     @Value(name = "match")
     @Hide(following = "auto pause&mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("是否在农业竞赛暂停farminghelper")
     ToggleSwitch match = new ToggleSwitch(false);
     @Value(name = "timer")
     @Hide(following = "auto pause&mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("可以让farminghelper工作在指定的时间段。")
     ToggleSwitch timer = new ToggleSwitch(false);
     @Value(name = "alarm")
     @Hide(following = "auto pause&mode&timer", value = "legit&normal")
@@ -121,10 +141,12 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     @Value(name = "extra packet")
     @Hide(following = "mode", value = "legit")
     @Sign(sign = Signs.BETA)
+    @Desc("当使用legit模式时，是否发送额外的数据包。效果上是一次挖三排")
     ToggleSwitch extra = new ToggleSwitch(false);
     @Value(name = "when over")
     @Hide(following = "mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("当完成一轮循环后是否做些什么")
     ToggleSwitch over = new ToggleSwitch(false);
     //    @Value(name = "actions")
 //    @Hide(following = "mode&when over", value = "legit&normal")
@@ -139,22 +161,27 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     @Value(name = "keep world")
     @Hide(following = "mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("保证你一直处在garden")
     ToggleSwitch keep = new ToggleSwitch(false);
     @Value(name = "lock view")
     @Hide(following = "mode", value = "legit")
     @Sign(sign = Signs.BETA)
+    @Desc("锁定你的视角")
     ToggleSwitch lock = new ToggleSwitch(true);
     @Value(name = "reach")
     @Hide(following = "mode", value = "legit")
     @Sign(sign = Signs.BETA)
+    @Desc("将你的最大破坏距离延长 1")
     ToggleSwitch reach = new ToggleSwitch(true);
     @Value(name = "free look")
     @Hide(following = "mode&lock view", value = "legit")
     @Sign(sign = Signs.BETA)
+    @Desc("自由视角，建议一直开着否则staff ban")
     ToggleSwitch free = new ToggleSwitch(true);
     @Value(name = "waiting time of next(m)")
     @Hide(following = "mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("当完成一轮循环后等待多久继续")
     ValueSlider wTimeN = new ValueSlider(4, 0, 6, 1);
     @Value(name = "cmd")
     @Hide(following = "mode", value = "legit&normal")
@@ -164,11 +191,13 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     @Value(name = "escape")
     @Hide(following = "mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("是否开启逃逸？")
     ToggleSwitch escape = new ToggleSwitch(false);
 
     @Value(name = "waiting time(m)")
     @Hide(following = "escape&mode", value = "legit&normal")
     @Sign(sign = Signs.BETA)
+    @Desc("当逃逸后等待多久继续")
     ValueSlider wTime = new ValueSlider(0, 0, 6, 1);
     @Value(name = "escapes")
     @Hide(following = "escape&mode", value = "legit&normal")
@@ -184,12 +213,34 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     private LocalTime end;
     private boolean timeFlag;
 
+    private TickTimer AfkTickTimer = TickTimer.build(this.delay::getIntValue, -1, () -> {
+        ModuleTools.execute("iamactuallyhere");
+        this.wpProcess.resume1();
+        this.status = Status.NONE;
+        this.message.sendDebugMessage(Text.of("AFK Over!"));
+    });
+
     @EventTarget
     public void onTick(ClientTickEvent event) {
 //        if (System.currentTimeMillis() > 1692026409) {
 //            ModuleManager.instance.disable(this);
 //        }
         this.update();
+        if (!HypixelWay.getInstance().isIn("Garden")) {
+            if (this.keep.isValue()) {
+                if ((worldChange.getTick() < 0)) {
+                    this.step = 1;
+                    worldChange.reset();
+                }
+
+            }
+            if (!this.mode.selectedValue().equals("manual")) {
+                return;
+            }
+
+        }
+
+
         doEscape1();
         if (this.wpProcess != null && this.wpProcess.getIndex() == 1 && !this.wpProcess.isPause()) {
             BaritoneAPI.getSettings().allowSprint.value = true;
@@ -234,7 +285,13 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
 
         if (event.getPacket() instanceof GameMessageS2CPacket) {
             GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) event.getPacket();
-            System.out.println(eventPacket.content().getStyle().getClickEvent());
+            if (this.afk.isValue() && eventPacket.content().getString().contains("You have been put to AFK mode!")) {
+                this.wpProcess.pause();
+                this.AfkTickTimer.reset();
+                this.status = Status.AFK;
+                this.message.sendDebugMessage(Text.of("AFK!"));
+
+            }
             if (eventPacket.content().getString().contains("Couldn't warp you! Try again later.")) {
                 if (this.step == 1) {
                     this.message.sendWarningMessage("warp back failed!");
@@ -395,6 +452,9 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     }
 
     private void doEscape1() {
+        if (this.mode.selectedValue().equals("manual")) {
+            return;
+        }
         if (!this.wpProcess.isPause()) {
             if (escapeFlag) {
                 SkyMatrix.mc.getSoundManager().play(PositionedSoundInstance.master(SoundEvents.BLOCK_NOTE_BLOCK_PLING.value(), 2.0f, 10));
@@ -410,6 +470,9 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
 
     @EventTarget
     private void onBlockChange(BlockChangeEvent event) {
+        if (this.mode.selectedValue().equals("manual")) {
+            return;
+        }
         if (event.getOld().isAir() && !event.getNe().isAir()) {
             if (!event.getNe().canPathfindThrough(SkyMatrix.mc.world, event.getPos(), NavigationType.LAND)) {
                 String name = BlockUtils.getName(event.getNe().getBlock()).replace("minecraft:", "");
@@ -428,6 +491,9 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     private void update() {
         if (this.worldChange != null) {
             worldChange.update();
+        }
+        if (this.AfkTickTimer != null) {
+            AfkTickTimer.update();
         }
         if (this.escapeTimer2 != null) {
             escapeTimer2.update();
@@ -537,8 +603,19 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
             if (blockPos != null && this.isTarget(blockPos)) {
                 SkyMatrix.mc.doAttack();
             }
+            ModuleTools.updataTarget();
+            blockPos = ModuleTools.getTarget();
+            if (blockPos != null && this.isTarget(blockPos)) {
+                SkyMatrix.mc.doAttack();
+            }
         }
 
+
+        Vec3d vec3d = Vec3d.fromPolar(new Vec2f(rotationFaker.getServerPitch(), rotationFaker.getServerYaw()));
+        SkyMatrix.mc.player.getEyePos().add(vec3d.multiply(1));
+        SkyMatrix.mc.player.getEyePos().add(vec3d.multiply(2));
+        SkyMatrix.mc.player.getEyePos().add(vec3d.multiply(3));
+        SkyMatrix.mc.player.getEyePos().add(vec3d.multiply(4));
 
 //        if (System.currentTimeMillis() % 120 == 0) {
 //            ModuleTools.updataTarget();
@@ -555,42 +632,69 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
 
     private boolean tempDisableEscape;
     int step;
-    private OneTickTimer worldChange;
-    private OneTickTimer worldChange2;
 
     @EventTarget
     public void onWorldChange(WorldChangeEvent e) {
 
+
         switch (this.mode.selectedValue()) {
             case "legit", "normal" -> {
                 tempDisableEscape = true;
-                if (this.wpProcess != null) {
-                    this.wpProcess.pause();
-                    this.wpProcess.setIndex(0);
+                if (this.keep.isValue()) {
+                    if (this.wpProcess != null) {
+                        this.wpProcess.pause();
+                        this.wpProcess.setIndex(0);
+                        this.status = Status.WAiTING;
+                        worldChange.reset();
+                    }
+                } else {
+                    ModuleManager.instance.disable(this);
+
                 }
-
-                this.status = Status.WAiTING;
-                worldChange = TickTimer.build(60, () -> {
-                    this.cmd.execute();
-                    this.message.sendDebugMessage(Text.of("keep-world step 1"));
-                    step = 1;
-                    worldChange2 = TickTimer.build(60, this::__WorldChange);
-                });
             }
+
         }
+    }    private OneTickTimer worldChange = TickTimer.build(60, () -> {
+        this.cmd.execute();
+        this.message.sendDebugMessage(Text.of("keep-world step 1"));
+        step = 1;
+        worldChange2 = TickTimer.build(60, this::__WorldChange);
+    });
 
-
-    }
+    private OneTickTimer worldChange2;
 
     private void __WorldChange() {
-
-        worldChange = null;
+        worldChange.setTick(-1);
         tempDisableEscape = false;
         this.wpProcess.resume1();
         this.status = Status.NONE;
         this.message.sendDebugMessage(Text.of("keep-world step 2"));
         step = 2;
 
+    }
+
+    @Override
+    public void disable() {
+        flag1 = false;
+        timeFlag = false;
+        banInfo.removeBanWaveCallBack("newfarminghelper");
+        if (wpProcess != null) {
+            lastIndex = wpProcess.getIndex();
+            wpProcess.stopP();
+            if (this.mode.selectedValue().equals("legit")) {
+                assert SkyMatrix.mc.player != null;
+                this.smoothRotation.smoothLook(RotationUtils.toRotation(SkyMatrix.mc.player.getRotationVecClient()), 3.5f, null, false);
+
+            }
+        }
+        farming.stop();
+        this.status = Status.NONE;
+        this.escapeTimer = null;
+        this.escapeTimer1 = null;
+        this.escapeTimer2 = null;
+        this.worldChange.setTick(-1);
+        this.escapeFlag = false;
+        this.tempDisableEscape = false;
     }
 
     public boolean canDo() {
@@ -733,28 +837,8 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
     @Use
     private Farming farming;
 
-    @Override
-    public void disable() {
-        flag1 = false;
-        timeFlag = false;
-        banInfo.removeBanWaveCallBack("newfarminghelper");
-        if (wpProcess != null) {
-            lastIndex = wpProcess.getIndex();
-            wpProcess.stopP();
-            if (this.mode.selectedValue().equals("legit")) {
-                assert SkyMatrix.mc.player != null;
-                this.smoothRotation.smoothLook(RotationUtils.toRotation(SkyMatrix.mc.player.getRotationVecClient()), 3.5f, null, false);
-
-            }
-        }
-        farming.stop();
-        this.status = Status.NONE;
-        this.escapeTimer = null;
-        this.escapeTimer1 = null;
-        this.escapeTimer2 = null;
-        this.worldChange = null;
-        this.escapeFlag = false;
-        this.tempDisableEscape = false;
+    public enum Status {
+        NONE, DOING, ESCAPING, WAiTING, AFK
     }
 
     @Override
@@ -818,9 +902,7 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
 
     }
 
-    public enum Status {
-        NONE, DOING, ESCAPING, WAiTING
-    }
+
 
 
 }

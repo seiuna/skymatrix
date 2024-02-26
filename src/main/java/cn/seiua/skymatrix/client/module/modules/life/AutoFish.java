@@ -696,7 +696,6 @@ public class AutoFish implements IToggle, Hud {
             SkyMatrix.mc.getNetworkHandler().sendCommand(this.command.getValue());
             isEscape = false;
         }
-
         ModuleManager.instance.disable(this.getClass());
     }
 

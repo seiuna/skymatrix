@@ -12,7 +12,6 @@ import cn.seiua.skymatrix.event.events.MouseEvent;
 import cn.seiua.skymatrix.message.Message;
 import cn.seiua.skymatrix.message.MessageBuilder;
 import com.google.common.collect.EvictingQueue;
-import net.minecraft.text.Text;
 import org.lwjgl.glfw.GLFW;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -196,7 +195,7 @@ public class KeyBindManger /*implements Runnable*/ {
         if (SkyMatrix.mc.currentScreen != null) return;
         List<Integer> keys = this.evictingQueue.stream().toList();
         List<KeyBind> keyBinds = new CopyOnWriteArrayList<>(this.keyBinds.stream().toList());
-        message.sendDebugMessage(Text.of(keys.toString()));
+//        message.sendDebugMessage(Text.of(keys.toString()));
         boolean flag = false;
         for (KeyBind k : keyBinds) {
             if (k.getKeys().size() == 0) continue;

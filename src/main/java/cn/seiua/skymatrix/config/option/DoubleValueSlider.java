@@ -31,12 +31,10 @@ public class DoubleValueSlider implements UIComponent {
     }
 
     public String toValueString(Number v) {
-
         return String.format("%.1f", v);
     }
 
     public double getRandomValue() {
-
         double v = Math.min(value.doubleValue(), value.doubleValue()) + (random.nextInt() % ((Math.max(value.doubleValue(), valua.doubleValue()) - Math.min(value.doubleValue(), valua.doubleValue()))));
         if (Objects.equals(value, valua)) v = valua.doubleValue();
         if (Double.isNaN(v)) {

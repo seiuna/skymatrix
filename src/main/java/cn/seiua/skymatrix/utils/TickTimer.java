@@ -2,6 +2,8 @@ package cn.seiua.skymatrix.utils;
 
 import cn.seiua.skymatrix.client.Run;
 
+import java.util.function.IntSupplier;
+
 public interface TickTimer {
     void update();
 
@@ -9,6 +11,16 @@ public interface TickTimer {
 
     static OneTickTimer build(int tick, Run callback) {
         return new OneTickTimer(tick, callback);
+    }
+
+    static OneTickTimer build(IntSupplier intSupplier, Run callback) {
+        return new OneTickTimer(intSupplier, callback);
+    }
+
+    static OneTickTimer build(IntSupplier intSupplier, int st, Run callback) {
+        OneTickTimer tickTimer = build(intSupplier, callback);
+        tickTimer.setTick(st);
+        return tickTimer;
     }
 
     static OneTickTimer build(int tick, int st, Run callback) {

@@ -27,7 +27,6 @@ public class Camera {
     @Value(name = "selected")
     @Sign(sign = Signs.FREE)
     public MultipleChoice selected = new MultipleChoice(Map.of("noclip", false), Icons.MODE);
-
     @Value(name = "modify clip")
     @Sign(sign = Signs.BETA)
     public ToggleSwitch modify = new ToggleSwitch(false);

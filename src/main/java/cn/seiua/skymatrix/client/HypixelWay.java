@@ -110,6 +110,7 @@ public class HypixelWay implements Hud {
                     if (name.contains(point)) {
                         int a = name.indexOf(point);
                         this.subWay = name.substring(a + 2).trim();
+                        break;
                     }
                 }
             }
@@ -130,7 +131,7 @@ public class HypixelWay implements Hud {
     public void onPacket(ServerPacketEvent event) {
         if (event.getPacket() instanceof GameMessageS2CPacket) {
             GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) event.getPacket();
-            System.out.println(eventPacket.content().toString() + "   1123");
+
             if (eventPacket.content().toString().contains("You were spawned in Limbo")) {
                 this.way = "LIMBO";
 

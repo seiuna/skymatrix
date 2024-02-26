@@ -214,7 +214,7 @@ public final class RotationFaker {
     }
 
     public synchronized float getServerYaw() {
-        return (smoothRotation.task == null || smoothRotation.task.isClient()) ? SkyMatrix.mc.player.getYaw() : serverYaw;
+        return ((smoothRotation.task == null || smoothRotation.task.isClient()) ? SkyMatrix.mc.player.getYaw() : serverYaw);
     }
 
     public synchronized float getServerPitch() {

@@ -220,7 +220,7 @@ public class DoVisitor implements Hud, IToggle {
         ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "visitors:");
         startY += 25;
         for (LivingEntity entity : this.target) {
-            ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "    " + entity.getEntityName());
+            ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "    " + entity.getDisplayName());
             startY += 25;
         }
 

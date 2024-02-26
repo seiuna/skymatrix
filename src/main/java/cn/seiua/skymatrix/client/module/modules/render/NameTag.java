@@ -106,7 +106,7 @@ public class NameTag {
                     ClickGui.fontRenderer24.centeredV();
                     ClickGui.fontRenderer24.centeredH();
                     ClickGui.fontRenderer24.setColor(new Color(0, 255, 220, 255));
-                    String text = entity1.getEntityName();
+                    String text = entity1.getDisplayName().getString();
                     if (this.health.isValue()) {
                         text += "§[" + entity1.getHealth() + "]";
                     }

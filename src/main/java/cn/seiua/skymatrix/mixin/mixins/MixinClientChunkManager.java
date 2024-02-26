@@ -7,6 +7,7 @@ import net.minecraft.client.world.ClientWorld;
 import net.minecraft.nbt.NbtCompound;
 import net.minecraft.network.PacketByteBuf;
 import net.minecraft.network.packet.s2c.play.ChunkData;
+import net.minecraft.util.math.ChunkPos;
 import net.minecraft.world.chunk.WorldChunk;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
@@ -32,7 +33,7 @@ public abstract class MixinClientChunkManager {
     }
 
     @Inject(method = "unload", at = @At("TAIL"))
-    public void unload(int chunkX, int chunkZ, CallbackInfo ci) {
-        new ClientChunkUnLoadEvent(chunkX, chunkZ).call();
+    public void unload(ChunkPos pos, CallbackInfo ci) {
+        new ClientChunkUnLoadEvent(pos.x, pos.z).call();
     }
 }

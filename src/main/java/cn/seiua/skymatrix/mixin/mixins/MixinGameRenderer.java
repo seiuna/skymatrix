@@ -57,11 +57,11 @@ public class MixinGameRenderer {
 
     @Inject(
             at = @At(value = "INVOKE",
-                    target = "net/minecraft/client/MinecraftClient.openPauseMenu (Z)V",
+                    target = "net/minecraft/client/MinecraftClient.openGameMenu (Z)V",
                     opcode = Opcodes.INVOKEVIRTUAL,
                     ordinal = 0),
             method = "render", cancellable = true)
-    public void render(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
+    public void openGameMenu(float tickDelta, long startTime, boolean tick, CallbackInfo ci) {
         ClientSettingEvent e = new ClientSettingEvent("lostFocus");
         e.call();
         if (e.isCancelled()) ci.cancel();

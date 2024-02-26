@@ -150,15 +150,16 @@ public class ClickGui extends Screen {
         super.close();
     }
 
+
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double amount) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         mouseY = mouseY * UI.getS();
         mouseX = mouseX * UI.getS();
         for (UIModules uiModules : modules.values()) {
-            uiModules.mouseScrolled(mouseX, mouseY, amount);
+            uiModules.mouseScrolled(mouseX, mouseY, verticalAmount);
         }
 
-        return super.mouseScrolled(mouseX, mouseY, amount);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Init

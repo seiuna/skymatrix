@@ -17,7 +17,9 @@ public class Rotation {
     }
 
     public float getYaw() {
-        return yaw;
+        float yaw = this.yaw;
+        if (yaw < 0) yaw += 36000;
+        return yaw % 360;
     }
 
     public void setYaw(float yaw) {

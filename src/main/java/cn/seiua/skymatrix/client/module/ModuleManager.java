@@ -41,6 +41,7 @@ public class ModuleManager {
 
     @Init(level = 999999)
     public void handle() {
+
         modules = new HashMap<>();
         for (Object o : components) {
             Class c = o.getClass();
@@ -58,6 +59,7 @@ public class ModuleManager {
     }
 
     public void callBack() {
+
         for (Object key : valueHolder.value.keySet()) {
 
             if (modules.containsKey(key)) {
@@ -146,6 +148,7 @@ public class ModuleManager {
             if (e.getMessage() != null) {
                 message.sendWarningMessage(Text.translatable(e.getMessage()).getString());
             }
+            e.printStackTrace();
 
         }
 

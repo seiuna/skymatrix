@@ -74,17 +74,14 @@ public class UIDoubleSlider extends UI {
         MatrixStack matrixStack = context.getMatrices();
         drawLine.reset(getX() - 125);
         setMid(true);
-
         double t1 = getTarget();
         double t2 = getTarget2();
         double d1 = getTarget() + getX();
         double d2 = getTarget2() + getX();
         double dd = Math.abs(t1 - t2);
-
         double minv = Math.min(optionInfo.getTarget().getValue().doubleValue(), optionInfo.getTarget().getValua().doubleValue());
         double maxv = Math.max(optionInfo.getTarget().getValue().doubleValue(), optionInfo.getTarget().getValua().doubleValue());
         double fv = getX() - 100 + (((minv - this.min) / w) * 200);
-
         RenderUtils.cent();
         RenderUtils.setColor(getBoardColoar());
         RenderUtils.drawRound2D(new Box(getX(), getY(), 0, getX() + 250, getY() + getHeight(), 0), matrixStack, 0);
@@ -97,30 +94,20 @@ public class UIDoubleSlider extends UI {
         RenderUtils.setColor(Theme.getInstance().THEME_UI_SELECTED.geColor());
         RenderUtils.resetCent();
         RenderUtils.drawRound2D(new Box(fv, getY() + 9, 0, fv + dd, getY() + 11, 0), matrixStack, 1);
-
-
         drawLine(matrixStack);
-
         ClickGui.fontRenderer16.centeredH();
         ClickGui.fontRenderer16.setColor(Theme.getInstance().THEME.geColor());
         ClickGui.fontRenderer16.drawString(matrixStack, drawLine.get(25), getY() - 10, upperFirst(optionInfo.getName()));
         drawLine.append(ClickGui.fontRenderer16.getStringWidth(upperFirst(optionInfo.getName())));
         ClickGui.fontRenderer16.centeredV();
-
-
         String v = optionInfo.getTarget().toValueString(minv) + "-" + optionInfo.getTarget().toValueString(maxv);
         int w = ClickGui.fontRenderer16.getStringWidth(v);
-        ClickGui.fontRenderer16.drawString(matrixStack, getX() + 96 - w / 2, getY() - 10, v);
+        ClickGui.fontRenderer16.drawString(matrixStack, getX() + 96 - (float) w / 2, getY() - 10, v);
         ClickGui.fontRenderer16.resetCenteredH();
         ClickGui.fontRenderer16.resetCenteredV();
-
-
         double uw = 200;
-
         // true v1 max false v1 min
-
         boolean v1max = (Math.max(this.optionInfo.getTarget().getValue().doubleValue(), this.optionInfo.getTarget().getValua().doubleValue()) == this.optionInfo.getTarget().getValue().doubleValue());
-
         ClickGui.iconfontRenderer28.centeredH();
         ClickGui.iconfontRenderer28.centeredV();
         ClickGui.iconfontRenderer28.setColor(getBoardColoar());
@@ -128,7 +115,6 @@ public class UIDoubleSlider extends UI {
         ClickGui.iconfontRenderer28.drawString(matrixStack, (int) (getX() - uw / 2 + t1), getY() + 8, v1max ? "\uE900" : "\uE901");
         ClickGui.iconfontRenderer28.resetCenteredH();
         ClickGui.iconfontRenderer28.resetCenteredV();
-
         ClickGui.iconfontRenderer28.centeredH();
         ClickGui.iconfontRenderer28.centeredV();
         ClickGui.iconfontRenderer28.setColor(getBoardColoar());
@@ -170,8 +156,6 @@ public class UIDoubleSlider extends UI {
             ClickGui.iconfontRenderer18.resetCenteredH();
             ClickGui.iconfontRenderer18.resetCenteredV();
         }
-
-
     }
 
     public double getTarget() {

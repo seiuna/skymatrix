@@ -42,4 +42,17 @@ public interface Filter {
         }
         return false;
     }
+
+    static boolean miningTool(ItemStack itemStack) {
+        String id = SkyBlockUtils.getItemId(itemStack);
+        if (!Objects.equals(id, "none")) {
+            String type = SkyBlockUtils.getItemType(itemStack);
+            if (type != null) {
+                if (type.equals("PICKAXE") || type.equals("DRILL")) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 }

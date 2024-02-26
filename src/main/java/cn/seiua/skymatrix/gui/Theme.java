@@ -24,6 +24,9 @@ public class Theme {
     @Value(name = "THEME_UI")
     @Sign(sign = Signs.BETA)
     public ColorHolder THEME_UI_SELECTED = new ColorHolder(new Color(140, 247, 255));
+    @Value(name = "THEME_UI_ERROR")
+    @Sign(sign = Signs.BETA)
+    public ColorHolder THEME_UI_ERROR = new ColorHolder(new Color(253, 99, 99));
     @Value(name = "UNSELECTED")
     @Sign(sign = Signs.BETA)
     public ColorHolder UNSELECTED = new ColorHolder(new Color(173, 185, 197));

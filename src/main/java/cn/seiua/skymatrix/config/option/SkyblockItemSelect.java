@@ -32,6 +32,16 @@ public class SkyblockItemSelect implements Serializable, UIComponent {
         this.filter = filter;
     }
 
+    public boolean switchTo() {
+        int slot = this.slot();
+        if (slot == -1) {
+
+            return false;
+        }
+        SkyMatrix.mc.player.getInventory().selectedSlot = slot;
+        return true;
+    }
+
     public Selector getSelector() {
         return selector;
     }
