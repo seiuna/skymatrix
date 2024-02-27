@@ -759,37 +759,7 @@ public class AutoFish implements IToggle, Hud {
 
     private RateStacker antiAFKRate = new RateStacker(10);
 
-    private void throwRod() {
-
-        SkyMatrix.mc.player.swingHand(SkyMatrix.mc.player.getActiveHand());
-        SkyMatrix.mc.interactionManager.interactItem(SkyMatrix.mc.player, SkyMatrix.mc.player.getActiveHand());
-        this.rts = Status.CHECKING;
-
-        if (this.afkMode.selectedValue().equals("when throw")) {
-            this.afks = Status.THROWN;
-        }
-
-
-        if (antiAfk.isValue()) {
-            Random random1 = new Random();
-            int rv1 = Math.abs(random1.nextInt()) % 16 - 8;
-            int rv2 = Math.abs(random1.nextInt()) % 16 - 8;
-            if (this.t31) {
-                this.t31 = false;
-                smoothRotation.smoothLook(new Rotation((float) (SkyMatrix.mc.player.getYaw() + x), (float) (SkyMatrix.mc.player.getPitch() + y)), 6, null, true);
-            } else {
-                this.x = rv1 * -1;
-                this.y = rv2 * -1;
-                this.t31 = true;
-                smoothRotation.smoothLook(new Rotation(SkyMatrix.mc.player.getYaw() + rv1, SkyMatrix.mc.player.getPitch() + rv2), 6, null, true);
-
-            }
-        } else {
-            this.t31 = true;
-        }
-
-
-    }
+    private Rotation lock;
 
     boolean afk;
     private OneTickTimer afkBackTimer;
@@ -901,8 +871,41 @@ public class AutoFish implements IToggle, Hud {
         t11 = true;
     }
 
+    private void throwRod() {
+
+        SkyMatrix.mc.player.swingHand(SkyMatrix.mc.player.getActiveHand());
+        SkyMatrix.mc.interactionManager.interactItem(SkyMatrix.mc.player, SkyMatrix.mc.player.getActiveHand());
+        this.rts = Status.CHECKING;
+
+        if (this.afkMode.selectedValue().equals("when throw")) {
+            this.afks = Status.THROWN;
+        }
+
+
+        if (antiAfk.isValue()) {
+            Random random1 = new Random();
+            int rv1 = Math.abs(random1.nextInt()) % 16 - 8;
+            int rv2 = Math.abs(random1.nextInt()) % 16 - 8;
+            if (this.t31) {
+                this.t31 = false;
+                smoothRotation.smoothLook(new Rotation((float) (SkyMatrix.mc.player.getYaw() + x), (float) (SkyMatrix.mc.player.getPitch() + y)), 6, null, true);
+            } else {
+                this.x = rv1 * -1;
+                this.y = rv2 * -1;
+                this.t31 = true;
+                smoothRotation.smoothLook(lock, 6, null, true);
+
+            }
+        } else {
+            this.t31 = true;
+        }
+
+
+    }
+
     @Override
     public void enable() {
+        lock = RotationUtils.toRotation(SkyMatrix.mc.player.getRotationVecClient());
         this.wormLavaEsp.tempDisable = false;
         fishCount = 0;
         t11 = true;
