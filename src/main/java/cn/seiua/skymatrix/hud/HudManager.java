@@ -12,6 +12,7 @@ import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
 import cn.seiua.skymatrix.config.Value;
+import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.HudRenderEvent;
 import cn.seiua.skymatrix.gui.Theme;
@@ -42,6 +43,14 @@ public class HudManager extends Screen {
         super(Text.of("HudManager"));
     }
 
+    @Value(name = "shift")
+    public KeyBind keyBind = new KeyBind("toggle", List.of(GLFW.GLFW_KEY_LEFT_SHIFT, KeyBind.getMouseKey(GLFW.GLFW_MOUSE_BUTTON_1)), this::toggle);
+
+    private void toggle() {
+        if (this.focus != null) {
+            this.focus.enable = !this.focus.enable;
+        }
+    }
     @Init
     public void init() {
         instance = this;
