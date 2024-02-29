@@ -13,6 +13,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jna.Native;
+import net.minecraft.util.math.BlockPos;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,6 +136,7 @@ public class ConfigManager<T> {
 
     @Init(level = 9999999)
     public void handle() {
+        boolean flag = !BlockPos.class.getName().contains("BlockPos");
         JSON.DEFAULT_GENERATE_FEATURE = SerializerFeature.DisableCircularReferenceDetect.getMask();
         profiles = new HashMap<>();
         configs = new HashMap<>();
@@ -162,6 +164,10 @@ public class ConfigManager<T> {
                 for (Field field : target.getDeclaredFields()) {
                     field.setAccessible(true);
                     Value value = (Value) field.getAnnotation(Value.class);
+                    DevOnly devOnly = (DevOnly) field.getAnnotation(DevOnly.class);
+                    if (devOnly != null && flag) {
+                        continue;
+                    }
                     if (value != null) {
                         cname = value.name();
 

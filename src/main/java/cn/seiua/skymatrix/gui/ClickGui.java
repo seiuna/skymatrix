@@ -1,7 +1,6 @@
 package cn.seiua.skymatrix.gui;
 
 
-import cn.seiua.skymatrix.ClientInfo;
 import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.*;
 import cn.seiua.skymatrix.client.component.Component;
@@ -20,8 +19,6 @@ import cn.seiua.skymatrix.utils.CateInfo;
 import cn.seiua.skymatrix.utils.ModuleInfo;
 import cn.seiua.skymatrix.utils.RenderUtils;
 import cn.seiua.skymatrix.utils.UiInfo;
-import net.fabricmc.loader.api.FabricLoader;
-import net.fabricmc.loader.api.ModContainer;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.util.math.MatrixStack;
@@ -314,22 +311,22 @@ public class ClickGui extends Screen {
         context.getMatrices().scale(1f / UI.getS(), 1f / UI.getS(), 1f / UI.getS());
 
 
-        Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("skymatrix");
-
-        if (optional.isPresent()) {
-            ModContainer container = optional.get();
-            fontRenderer20.centeredH();
-            fontRenderer20.setColor(new Color(240, 255, 255));
-            int i = 20;
-            fontRenderer20.drawString(context.getMatrices(), 10, i, "CLIENT_ID: " + ClientInfo.ClientID + "  VERSION: " + container.getMetadata().getVersion());
-            i += 25;
-            fontRenderer20.drawString(context.getMatrices(), 10, i, "GITHUB: " + "https://github.com/seiuna/skymatrix");
-            i += 25;
-            fontRenderer20.drawString(context.getMatrices(), 10, i, "AUTHORS: " + "https://github.com/seiuna");
-            i += 25;
-            fontRenderer20.drawString(context.getMatrices(), 10, i, "DOCS: " + "https://docs.seiua.cn/guide/");
-            fontRenderer20.resetCenteredH();
-        }
+//        Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("skymatrix");
+//
+//        if (optional.isPresent()) {
+//            ModContainer container = optional.get();
+//            fontRenderer20.centeredH();
+//            fontRenderer20.setColor(new Color(240, 255, 255));
+//            int i = 20;
+//            fontRenderer20.drawString(context.getMatrices(), 10, i, "CLIENT_ID: " + ClientInfo.ClientID + "  VERSION: " + container.getMetadata().getVersion());
+//            i += 25;
+//            fontRenderer20.drawString(context.getMatrices(), 10, i, "GITHUB: " + "https://github.com/seiuna/skymatrix");
+//            i += 25;
+//            fontRenderer20.drawString(context.getMatrices(), 10, i, "AUTHORS: " + "https://github.com/seiuna");
+//            i += 25;
+//            fontRenderer20.drawString(context.getMatrices(), 10, i, "DOCS: " + "https://docs.seiua.cn/guide/");
+//            fontRenderer20.resetCenteredH();
+//        }
 
 
         drawMask(context.getMatrices());

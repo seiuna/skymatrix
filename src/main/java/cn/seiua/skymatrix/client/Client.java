@@ -15,6 +15,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Queue;
 
 @Component
@@ -22,8 +23,8 @@ import java.util.Queue;
 @Category(name = "client")
 public final class Client {
 
-
     private static final Logger logger = LogManager.getLogger();
+    public static Client instance;
     @Use
     private ConfigManager configManager;
     @Use
@@ -34,15 +35,13 @@ public final class Client {
     private Setting setting;
     public int stage;
     public static File root = new File(MinecraftClient.getInstance().runDirectory, "skymartix");
-    private Client instance;
+
     private static final Queue<Text> priorityQueue = EvictingQueue.create(40);
 
     @Init(level = 999)
     public void start() {
-
         root.mkdirs();
-
-
+        instance = this;
     }
 
     private boolean keepBlockBreaking;
@@ -54,18 +53,15 @@ public final class Client {
     public void setKeepBlockBreaking(boolean keepBlockBreaking) {
         this.keepBlockBreaking = keepBlockBreaking;
         if (!keepBlockBreaking) {
-            SkyMatrix.mc.options.attackKey.setPressed(false);
 
         }
     }
 
     @EventTarget
     private void onHandleKeyInputBeforeEvent(HandleKeyInputBeforeEvent event) {
-        if (keepBlockBreaking) {
-            SkyMatrix.mc.options.attackKey.setPressed(true);
+        if (this.keepBlockBreaking && SkyMatrix.mc.currentScreen != null) {
             SkyMatrix.mc.attackCooldown = 0;
             SkyMatrix.mc.handleBlockBreaking(true);
-
         }
 
     }
@@ -74,7 +70,7 @@ public final class Client {
     @EventTarget
     public void ClientTickEvent(ClientTickEvent e) {
 
-        if (setting.title.getValue() != "") {
+        if (!Objects.equals(setting.title.getValue(), "")) {
             SkyMatrix.mc.getWindow().setTitle(setting.title.getValue());
         }
 
