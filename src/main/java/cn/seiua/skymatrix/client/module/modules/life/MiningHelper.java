@@ -95,8 +95,8 @@ public class MiningHelper implements IToggle {
         }
 
         client.setKeepBlockBreaking(!mouse.isValue());
-
         if ((!mouse.isValue() || (SkyMatrix.mc.currentScreen == null && SkyMatrix.mc.options.attackKey.isPressed())) || hold) {
+            SkyMatrix.mc.options.attackKey.setPressed(true);
             ItemStack is = SkyMatrix.mc.player.getInventory().getMainHandStack();
             String type = SkyBlockUtils.getItemType(is);
             String name = is.getItem().toString().toLowerCase();
@@ -155,7 +155,7 @@ public class MiningHelper implements IToggle {
                         holdVec = vec3d1;
                     } else {
                         holdTick++;
-                        if (holdTick > 60) {
+                        if (holdTick > 100) {
                             black.put(String.valueOf(Objects.hash(this.target.getX(), this.target.getY(), this.target.getZ())), 20);
                         }
                     }
@@ -242,6 +242,8 @@ public class MiningHelper implements IToggle {
     public void disable() {
         this.target = null;
         client.setKeepBlockBreaking(false);
+        SkyMatrix.mc.options.attackKey.setPressed(false);
+
 
     }
 
