@@ -139,7 +139,7 @@ public class AutoHotm implements IToggle, Hud {
         readyCount = 0;
         List<PlayerListEntry> players = playerOrdering.sortedCopy(mc.getNetworkHandler().getPlayerList());
         boolean flag = false;
-        System.out.println("---");
+//        System.out.println("---");
 
         for (PlayerListEntry info : players) {
             String name = mc.inGameHud.getPlayerListHud().getPlayerName(info).getString();
@@ -166,7 +166,7 @@ public class AutoHotm implements IToggle, Hud {
                             int index = name.indexOf(target);
                             String old = spot;
                             spot = name.substring(0, index).trim();
-                            System.out.println(name);
+//                            System.out.println(name);
                             if (spot.isBlank() && "mining".equals(task1)) {
                                 spot = old;
                                 continue;
