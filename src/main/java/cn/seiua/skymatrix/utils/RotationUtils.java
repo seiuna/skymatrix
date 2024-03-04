@@ -36,8 +36,15 @@ public enum RotationUtils {
     }
 
     public static Rotation toRotation(Vec3d vec3d) {
-        float yaw = (float) Math.toDegrees(Math.atan2(vec3d.x, vec3d.z)) * -1;
-        float pitch = (float) Math.toDegrees(Math.atan2(vec3d.y, Math.sqrt(Math.pow(vec3d.x, 2) + Math.pow(vec3d.z, 2)))) * -1;
+//        float yaw = (float) Math.toDegrees(Math.atan2(vec3d.x, vec3d.z)) * -1;
+//        float pitch = (float) Math.toDegrees(Math.atan2(vec3d.y, Math.sqrt(Math.pow(vec3d.x, 2) + Math.pow(vec3d.z, 2)))) * -1;
+        double diffX = vec3d.x;
+        double diffY = vec3d.y;
+        double diffZ = vec3d.z;
+        double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
+        float yaw = (float) Math.toDegrees(Math.atan2(diffZ, diffX)) - 90F;
+        float pitch = (float) -Math.toDegrees(Math.atan2(diffY, diffXZ));
+
         return new Rotation(yaw, pitch);
     }
 
@@ -50,6 +57,27 @@ public enum RotationUtils {
     }
     public static Rotation getNeededRotations(Vec3d vec) {
         Vec3d eyesPos = getEyesPos();
+
+        double diffX = vec.x - eyesPos.x;
+        double diffY = vec.y - eyesPos.y;
+        double diffZ = vec.z - eyesPos.z;
+
+        double diffXZ = Math.sqrt(diffX * diffX + diffZ * diffZ);
+
+        float yaw = (float) Math.toDegrees(Math.atan2(diffZ, diffX)) - 90F;
+        float pitch = (float) -Math.toDegrees(Math.atan2(diffY, diffXZ));
+
+        return Rotation.wrapped(yaw, pitch);
+    }
+    public static Vec3d getEyesPosfix18() {
+        ClientPlayerEntity player = SkyMatrix.mc.player;
+
+        return new Vec3d(player.getX(),
+                player.getY() + (player.isSneaking()? 1.54:player.getEyeHeight(player.getPose())),
+                player.getZ());
+    }
+    public static Rotation getNeededRotationsFix18(Vec3d vec) {
+        Vec3d eyesPos = getEyesPosfix18();
 
         double diffX = vec.x - eyesPos.x;
         double diffY = vec.y - eyesPos.y;

@@ -10,16 +10,20 @@ import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
 import cn.seiua.skymatrix.client.module.modules.life.MiningHelper;
+import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.ClientTickEvent;
 import cn.seiua.skymatrix.event.events.CommandRegisterEvent;
+import cn.seiua.skymatrix.event.events.ServerPacketEvent;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
 import cn.seiua.skymatrix.gui.ClickGui;
 import cn.seiua.skymatrix.gui.Theme;
 import cn.seiua.skymatrix.hud.ClientHud;
 import cn.seiua.skymatrix.hud.Hud;
+import cn.seiua.skymatrix.message.Message;
+import cn.seiua.skymatrix.message.MessageBuilder;
 import cn.seiua.skymatrix.render.BlockLocTarget;
 import cn.seiua.skymatrix.utils.*;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -33,6 +37,7 @@ import net.minecraft.client.network.PlayerListEntry;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -74,6 +79,18 @@ public class AutoHotm implements IToggle, Hud {
     @Value(name = "slayer", desc = "做冰人哥布林任务")
     @Sign(sign = Signs.BETA)
     public ToggleSwitch op_slayer = new ToggleSwitch(true);
+
+    @Value(name = "ice Walker", desc = "做冰人哥布林任务")
+    @Hide(following = "slayer")
+    @Sign(sign = Signs.BETA)
+    public ToggleSwitch op_slayer_walker = new ToggleSwitch(true);
+
+    @Value(name = "goblin", desc = "做冰人哥布林任务")
+    @Hide(following = "slayer")
+    @Sign(sign = Signs.BETA)
+    public ToggleSwitch op_slayer_goblin = new ToggleSwitch(true);
+
+
     @Value(name = "your hotm level", desc = "你的山心等级")
     @Sign(sign = Signs.BETA)
     public ValueSlider level = new ValueSlider(6, 1, 7, 1);
@@ -102,6 +119,7 @@ public class AutoHotm implements IToggle, Hud {
     MiningHelper miningHelper;
     TickTimer cd = TickTimer.build(20, this::tp);
     TickTimer reset = TickTimer.build(10, this::reset);
+    private Message message= MessageBuilder.build("AutoHotm");
     @Use
     HypixelWay hypixelWay;
     int tick = 0;
@@ -123,16 +141,25 @@ public class AutoHotm implements IToggle, Hud {
     public void init() {
 
     }
+    private boolean disable_ab;
+    private void useAbility(){
 
-    public void updateTask() {
-        if (forge == null) {
-            for (Node node : nodeManager.nodes) {
-                if (node.tags.contains("FORGE")) {
-                    forge = node;
+    }
+    @EventTarget
+    public void onPacket(ServerPacketEvent event) {
+        if (event.getPacket() instanceof GameMessageS2CPacket) {
+            GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) event.getPacket();
+            if(this.task.equals("mining")&&arrived){
+                if (eventPacket.content().getString().contains("is now available!")) {
+                    mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
                 }
             }
+
         }
-        if (mc.currentScreen != null) return;
+    }
+    public void updateTask() {
+
+        if ((mc.currentScreen instanceof HandledScreen<?>)) return;
         if (mc.getNetworkHandler() == null) return;
         String task1 = null;
         String spot = null;
@@ -155,6 +182,7 @@ public class AutoHotm implements IToggle, Hud {
 
                 String target = "";
                 boolean isReady = name.contains("DONE");
+                if(name.contains("Powder Collector"))continue;
                 // 优先级 slayer 带位置的 mining 不带位置的 mining
                 if (!isReady) {
                     if (this.op_mining.isValue()) {
@@ -185,11 +213,11 @@ public class AutoHotm implements IToggle, Hud {
                         }
                         String t1 = null;
                         String t2 = null;
-                        if (name.contains("Goblin Slayer") && !name.contains("Golden")) {
+                        if (name.contains("Goblin Slayer") && !name.contains("Golden")&&op_slayer_goblin.isValue()) {
                             t1 = "slayer";
                             t2 = "goblin";
                         }
-                        if (name.contains("Ice Walker Slayer")) {
+                        if (name.contains("Ice Walker Slayer")&&op_slayer_walker.isValue()) {
                             t1 = "slayer";
                             t2 = "walker";
                         }
@@ -217,6 +245,7 @@ public class AutoHotm implements IToggle, Hud {
         }
         if (task1 != null) {
             if (!task1.equals(this.task) || (spot != null && !spot.equals(this.spot))) {
+                message.sendMessage(Text.of("下一个任务:"+task1+" 位置:"+spot));
                 mc.options.forwardKey.setPressed(false);
                 mc.options.backKey.setPressed(false);
                 mc.options.leftKey.setPressed(false);
@@ -387,19 +416,46 @@ public class AutoHotm implements IToggle, Hud {
             this.aotv.switchTo();
             Vec3d bp = nodes.get(step).toBlockPos().toCenterPos().add(0, 0.5, 0);
             assert mc.player != null;
-            Rotation rotation = RotationUtils.toRotation(bp.subtract(mc.player.getPos().add(0, 1.54, 0)));
-            if (!rotationFaker.smoothRotation.running) {
+//            Rotation rotation = RotationUtils.getNeededRotations(bp.subtract(mc.player.getPos().add(0, 1.54, 0)));
 
+            Rotation rotation = RotationUtils.getNeededRotationsFix18(bp);
                 rotationFaker.smoothRotation.smoothLook(rotation, 2.4f, () -> {
-                    if (((OneTickTimer) cd).getTick() <= 1) {
-                        assert mc.interactionManager != null;
-                        mc.interactionManager.interactItem(mc.player, mc.player.getActiveHand());
-                        ((OneTickTimer) cd).setTick(aotv_tick.getValue().intValue());
-                    }
+//                    if (((OneTickTimer) cd).getTick() <= 1) {
+//                        assert mc.interactionManager != null;
+//                        mc.interactionManager.interactItem(mc.player, mc.player.getActiveHand());
+//                        ((OneTickTimer) cd).setTick(aotv_tick.getValue().intValue());
+//                    }
                 }, true);
-            }
-            MinecraftClient.getInstance().options.sneakKey.setPressed(true);
 
+
+            MinecraftClient.getInstance().options.sneakKey.setPressed(true);
+            BlockHitResult hitResult = SkyMatrix.mc.world.raycast(new RaycastContext(mc.player.getPos().add(0, 1.54, 0),nodes.get(step).toBlockPos().toCenterPos().add(0, 0.5, 0), RaycastContext.ShapeType.COLLIDER, RaycastContext.FluidHandling.NONE, SkyMatrix.mc.player));
+//            System.out.println(hitResult.getBlockPos());
+//            System.out.println(nodes.get(step).toBlockPos());
+//            System.out.println("--");
+            //待修复
+            BlockPos bp2=nodes.get(step).toBlockPos().withY(0);
+            BlockPos bp1= hitResult.getBlockPos().withY(0);
+            moveTick++;
+            if(bp2.equals(bp1)){
+                if (((OneTickTimer) cd).getTick() <= 1) {
+                    assert mc.interactionManager != null;
+                    mc.interactionManager.interactItem(mc.player, mc.player.getActiveHand());
+                    ((OneTickTimer) cd).setTick(aotv_tick.getValue().intValue());
+                    moveTick=0;
+                }
+            }else {
+                if(moveTick>20*6){
+
+                        mc.getNetworkHandler().sendCommand("warp forge");
+                        this.status = "none";
+                         moveTick=0;
+                         this.nodes.clear();
+                            this.step=0;
+                }
+            }
+
+            MinecraftClient.getInstance().options.sneakKey.setPressed(true);
             arrived = false;
         } else {
             status = "doing";
@@ -409,7 +465,7 @@ public class AutoHotm implements IToggle, Hud {
             step = 0;
             return;
         }
-        if (nodes.get(step).toBlockPos().toCenterPos().distanceTo(mc.player.getPos()) < 2.5) {
+        if (nodes.get(step).toBlockPos().toCenterPos().distanceTo(mc.player.getPos()) < 1.7) {
             step++;
             Client.sendDebugMessage(Text.of("rotating to " + nodes.get(step - 1).toBlockPos().toCenterPos().add(0, 0.5, 0)));
             Client.sendDebugMessage(Text.of("step " + step + " of " + nodes.size()));
@@ -552,7 +608,7 @@ public class AutoHotm implements IToggle, Hud {
             if (!targets.isEmpty()) {
                 Entity target = targets.get(0);
                 if (!rotationFaker.smoothRotation.running) {
-                    rotationFaker.smoothRotation.smoothLook(RotationUtils.toRotation(target.getEyePos().subtract(0, 1.5, 0).subtract(SkyMatrix.mc.player.getEyePos())), 2.9f, this::shoot, true);
+                    rotationFaker.smoothRotation.smoothLook(RotationUtils.toRotation(target.getEyePos().subtract(0, 1.5, 0).subtract(SkyMatrix.mc.player.getEyePos())), 3.9f, this::shoot, true);
                     this.blackList.add(target);
                 }
 
@@ -565,7 +621,7 @@ public class AutoHotm implements IToggle, Hud {
             this.reset.update();
             if (moveTick % 90 == 0) {
                 if (new Random().nextBoolean()) mc.options.forwardKey.setPressed(true);
-                if (new Random().nextBoolean()) mc.options.backKey.setPressed(true);
+                if (new Random().nextBoolean()&&new Random().nextBoolean()&&new Random().nextBoolean()) mc.options.backKey.setPressed(true);
                 if (new Random().nextBoolean()) mc.options.leftKey.setPressed(true);
                 if (new Random().nextBoolean()) mc.options.rightKey.setPressed(true);
                 this.reset.reset();
@@ -592,12 +648,20 @@ public class AutoHotm implements IToggle, Hud {
         this.nTick = 0;
         this.blackList.clear();
         this.target = null;
-        this.forge = null;
         this.task = null;
         this.spot = null;
         this.name = null;
         this.readyCount = 0;
-
+        if (forge == null) {
+            for (Node node : nodeManager.nodes) {
+                if (node.tags.contains("FORGE")) {
+                    forge = node;
+                }
+            }
+        }
+        if (forge == null) {
+            throw new RuntimeException("未找到Forge节点 请检查nodes.json文件");
+        }
 
     }
 
@@ -608,12 +672,12 @@ public class AutoHotm implements IToggle, Hud {
         }
         RenderUtils.resetCent();
         RenderUtils.setColor(new Color(0, 0, 0, 100));
-        RenderUtils.drawSolidBox(new Box(x, y, 0, x + getHudWidth(), y + getHudHeight(), 0), matrixStack);
-        ClickGui.fontRenderer20.resetCenteredH();
-        ClickGui.fontRenderer20.resetCenteredV();
+        ClickGui.fontRenderer20.centeredH();
+        ClickGui.fontRenderer20.centeredV();
         float startX = x + 40;
         float startY = y + 40;
-        ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "status: " + status + " spot: " + spot + " task: " + task + " target: " + target + " arrived: " + arrived + " step: " + step + " nodes: " + nodes.size());
+        if(nodes==null)return;
+        ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, "状态: " + status + " 位置: " + spot + " 当前任务: " + task + " 目标: " + target + " 是否到达: " + arrived + "  nodes: " + step + "/" + nodes.size());
 
     }
 

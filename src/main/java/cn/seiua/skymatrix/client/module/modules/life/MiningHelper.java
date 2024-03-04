@@ -67,7 +67,7 @@ public class MiningHelper implements IToggle {
     public boolean isTarget(BlockPos bp) {
         String name1 = (SkyMatrix.mc.world.getBlockState(bp).getBlock().getName()).getString();
 
-        if (name1.contains("Grass") || name1.contains("Stone") || name1.contains("Leaves") || name1.contains("Wood") || name1.contains("Poppy") || name1.contains("Dandelion") || name1.contains("Azure") || name1.contains("Bluet")) {
+        if (name1.contains("Grass")  || name1.contains("Leaves") || name1.contains("Wood") || name1.contains("Poppy") || name1.contains("Dandelion") || name1.contains("Azure") || name1.contains("Bluet")) {
             if (name1.equals("Grass Block")) return false;
             return true;
         }
@@ -159,7 +159,7 @@ public class MiningHelper implements IToggle {
                             black.put(String.valueOf(Objects.hash(this.target.getX(), this.target.getY(), this.target.getZ())), 20);
                         }
                     }
-                    smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 1.4f, null, true);
+                    smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 2.4f, null, true);
                 } else {
 
                 }

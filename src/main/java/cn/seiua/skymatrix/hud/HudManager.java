@@ -15,11 +15,14 @@ import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.HudRenderEvent;
+import cn.seiua.skymatrix.gui.ClickGui;
 import cn.seiua.skymatrix.gui.Theme;
 import cn.seiua.skymatrix.gui.ui.UI;
 import cn.seiua.skymatrix.utils.RenderUtils;
+import com.sun.jna.platform.KeyboardUtils;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.util.InputUtil;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.math.Box;
@@ -116,6 +119,7 @@ public class HudManager extends Screen {
 
                 }
                 hud.getTarget().draw(matrixStack, hud.x, hud.y);
+                RenderUtils.setColor(Theme.getInstance().THEME_UI_SELECTED.value);
             }
         }
         if (this.focus != null) {
@@ -138,6 +142,10 @@ public class HudManager extends Screen {
             RenderUtils.drawOutlineBox(new Box(x, y, 0, x + w, y + h, 0), matrixStack);
             long id = GLFW.glfwCreateStandardCursor(GLFW.GLFW_RESIZE_ALL_CURSOR);
             GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), id);
+            ClickGui.fontRenderer20.centeredV();
+            ClickGui.fontRenderer20.centeredH();
+            ClickGui.fontRenderer20.drawString(context.getMatrices(),mouseX, mouseY+16, "状态："+(focus.enable?"开启":"关闭"));
+
         }
         matrixStack.scale(ms, ms, ms);
         matrixStack.pop();
@@ -149,7 +157,6 @@ public class HudManager extends Screen {
         } else {
             drag = false;
         }
-        super.render(context, mouseX, mouseY, delta);
     }
 
     boolean drag;
@@ -166,6 +173,11 @@ public class HudManager extends Screen {
                 drag = true;
                 px = (float) (mouseX - this.focus.getX());
                 py = (float) (mouseY - this.focus.getY());
+            }
+        }
+        if(InputUtil.isKeyPressed(SkyMatrix.mc.getWindow().getHandle(), GLFW.GLFW_KEY_LEFT_SHIFT)){
+            if(button==0){
+                toggle();
             }
         }
         return super.mouseClicked(mouseX, mouseY, button);
