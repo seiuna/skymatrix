@@ -218,6 +218,9 @@ public class SkyBlockUtils {
         if (target.contains("SHEARS")) {
             return "SHEARS";
         }
+        if (target.contains("GAUNTLET")) {
+            return "GAUNTLET";
+        }
 
         return null;
     }

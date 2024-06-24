@@ -66,9 +66,15 @@ public abstract class UI {
 
     public static String upperFirst(String b) {
         char[] c = b.toCharArray();
-
-        if (c[0] >= 'a' && c[0] <= 'z') {
-            c[0] = (char) (c[0] - 32);
+        boolean flag = true;
+        for (int i = 0; i < c.length; i++) {
+            if (flag) {
+                c[i] = Character.toUpperCase(c[i]);
+                flag = false;
+            }
+            if (c[i] == ' ') {
+                flag = true;
+            }
         }
         return new String(c);
     }

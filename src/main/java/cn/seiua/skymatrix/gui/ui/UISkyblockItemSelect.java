@@ -1,6 +1,7 @@
 package cn.seiua.skymatrix.gui.ui;
 
 import cn.seiua.skymatrix.SkyMatrix;
+import cn.seiua.skymatrix.client.config.Setting;
 import cn.seiua.skymatrix.config.option.SkyblockItemSelect;
 import cn.seiua.skymatrix.gui.ClickGui;
 import cn.seiua.skymatrix.gui.DrawLine;
@@ -75,7 +76,6 @@ public class UISkyblockItemSelect extends UI {
         RenderUtils.setColor(optionInfo.getSign().color);
         RenderUtils.drawRound2D(new Box(getX() + 124, getY(), 0, getX() + 127, getY() + getHeight(), 0), matrixStack, 0);
         RenderUtils.resetCent();
-
         ClickGui.iconfontRenderer18.centeredH();
         ClickGui.iconfontRenderer18.centeredV();
 
@@ -87,6 +87,9 @@ public class UISkyblockItemSelect extends UI {
             if (this.itemMap.get(this.optionInfo.getTarget().getUuid()) != null) {
                 v = this.itemMap.get(this.optionInfo.getTarget().getUuid());
                 v = upperFirst(v.replace("_", " ").toLowerCase());
+                while (ClickGui.fontRenderer16.getStringWidth(v) > 154) {
+                    v = v.substring(0, v.length() - 2);
+                }
             } else {
                 v = "NOFOUND";
             }
@@ -106,9 +109,8 @@ public class UISkyblockItemSelect extends UI {
 
         int w = ClickGui.fontRenderer16.getStringWidth(v);
         ClickGui.fontRenderer16.setColor(color);
-        ClickGui.fontRenderer16.drawString(matrixStack, drawLine.get(65), getY() - 2, v);
+        ClickGui.fontRenderer16.drawString(matrixStack, drawLine.get(65), getY() - 2, 0, v);
         drawLine.append(w);
-
 
 //        if (isInButton(mouseX, mouseY)) {
 //            ClickGui.iconfontRenderer22.centeredH();
@@ -136,7 +138,6 @@ public class UISkyblockItemSelect extends UI {
         ClickGui.fontRenderer16.resetCenteredV();
 
 
-        drawLine(matrixStack);
 
 
     }
@@ -150,7 +151,7 @@ public class UISkyblockItemSelect extends UI {
                 break;
             }
             String uuid = SkyBlockUtils.getItemUuid(itemStack);
-            String id = SkyBlockUtils.getItemId(itemStack);
+            String id = Setting.getInstance().full_name.isValue() ? itemStack.getName().getString() : SkyBlockUtils.getItemId(itemStack);
 
             if (uuid != "none") {
 

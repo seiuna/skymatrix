@@ -11,7 +11,6 @@ repositories {
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.isxander.dev/releases" }
     maven { url "https://maven.isxander.dev/snapshots" } //For minecraft snapshots
-
 }
 
 loom {
@@ -28,7 +27,7 @@ dependencies {
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
 
-
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.11.0+kotlin.2.0.0")
     // Fabric API
     modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
     // Mod Menu

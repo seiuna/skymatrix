@@ -1,9 +1,8 @@
 package cn.seiua.skymatrix.event.events;
 
-import cn.seiua.skymatrix.event.Event;
 import net.minecraft.entity.player.PlayerEntity;
 
-public class LookLockEvent extends Event {
+public class LookLockEvent extends AntiCheckEvent {
 
     private final long time;
     private final PlayerEntity e;

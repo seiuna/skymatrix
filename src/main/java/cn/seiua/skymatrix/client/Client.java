@@ -5,10 +5,13 @@ import cn.seiua.skymatrix.client.component.*;
 import cn.seiua.skymatrix.client.config.Setting;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.ClientTickEvent;
+import cn.seiua.skymatrix.event.events.GameMessageEvent;
 import cn.seiua.skymatrix.event.events.HandleKeyInputBeforeEvent;
+import cn.seiua.skymatrix.event.events.ServerPacketEvent;
 import com.google.common.collect.EvictingQueue;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.Text;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -84,6 +87,13 @@ public final class Client {
         }
     }
 
+    @EventTarget
+    public void onPacket(ServerPacketEvent event) {
+        if (event.getPacket() instanceof GameMessageS2CPacket) {
+            GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) event.getPacket();
+            new GameMessageEvent(eventPacket.content()).call();
+        }
+    }
     @Use
     public List<Screen> guiScreens;
 

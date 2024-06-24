@@ -14,10 +14,7 @@ import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
 import cn.seiua.skymatrix.event.EventTarget;
-import cn.seiua.skymatrix.event.events.ClientTickEvent;
-import cn.seiua.skymatrix.event.events.CommandRegisterEvent;
-import cn.seiua.skymatrix.event.events.ServerPacketEvent;
-import cn.seiua.skymatrix.event.events.WorldRenderEvent;
+import cn.seiua.skymatrix.event.events.*;
 import cn.seiua.skymatrix.gui.ClickGui;
 import cn.seiua.skymatrix.gui.Theme;
 import cn.seiua.skymatrix.hud.ClientHud;
@@ -43,7 +40,6 @@ import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 import org.lwjgl.glfw.GLFW;
@@ -55,7 +51,7 @@ import java.util.*;
 import static cn.seiua.skymatrix.SkyMatrix.mc;
 import static cn.seiua.skymatrix.utils.PlayerListUtils.playerOrdering;
 
-@Event(register = true)
+@Event
 @Sign(sign = Signs.BETA)
 @SModule(name = "AutoHotm", category = "skyblock")
 public class AutoHotm implements IToggle, Hud {
@@ -111,7 +107,7 @@ public class AutoHotm implements IToggle, Hud {
     SkyblockItemSelect aotv = new SkyblockItemSelect("", false, Selector::bestAote, Filter::aote);
     @Value(name = "tool", desc = "你的挖矿工具")
     @Sign(sign = Signs.BETA)
-    SkyblockItemSelect tool = new SkyblockItemSelect("", false, null, Filter::miningTool);
+    SkyblockItemSelect tool = new SkyblockItemSelect("", false, Selector::bestMiningTool, Filter::miningTool);
     @Value(name = "weapon", desc = "你的武器")
     @Sign(sign = Signs.BETA)
     SkyblockItemSelect weapon = new SkyblockItemSelect("", false, null, Filter::weaponFilter);
@@ -136,127 +132,75 @@ public class AutoHotm implements IToggle, Hud {
     private ArrayList<Node> nodes;
     private int step = 0;
     private Node target;
-
+    int ctt;
     @Init
     public void init() {
 
     }
     private boolean disable_ab;
+    int cdd;
+    private String focusTask;
+    private boolean flag;
+
     private void useAbility(){
 
     }
+
+    public void keepWorld() {
+        if (this.focusTask == null || !this.focusTask.equals("keepworld")) {
+            this.focusTask = "keepworld";
+            cdd = 0;
+            ctt = 0;
+        }
+    }
+
+    public void doKeepWorld() {
+        if (this.focusTask.equals("keepworld")) {
+            cdd++;
+            if (ctt >= 40) {
+                mc.getNetworkHandler().sendCommand("warp forge");
+                this.message.sendMessage(Text.of("warp forge"));
+                cdd = 0;
+                this.focusTask = null;
+            }
+        }
+    }
+
+    public void doSwitchServer() {
+        if (focusTask == null) return;
+        ctt++;
+        if (focusTask.equals("switch")) {
+            if (cdd == 0 && ctt == 40) {
+                mc.getNetworkHandler().sendCommand("warp hub");
+                cdd++;
+            }
+            if (cdd == 1 && ctt == 80) {
+                mc.getNetworkHandler().sendCommand("warp forge");
+                cdd++;
+            }
+            if (cdd == 2 && ctt == 120) {
+                focusTask = null;
+                cdd = 0;
+            }
+        }
+    }
+
+    public void switchServer() {
+        cdd = 0;
+        focusTask = "switch";
+    }
+
     @EventTarget
     public void onPacket(ServerPacketEvent event) {
         if (event.getPacket() instanceof GameMessageS2CPacket) {
             GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) event.getPacket();
-            if(this.task.equals("mining")&&arrived){
+            if (this.task != null && this.task.equals("mining") && arrived) {
                 if (eventPacket.content().getString().contains("is now available!")) {
                     mc.interactionManager.interactItem(mc.player, Hand.MAIN_HAND);
                 }
             }
 
         }
-    }
-    public void updateTask() {
-
-        if ((mc.currentScreen instanceof HandledScreen<?>)) return;
-        if (mc.getNetworkHandler() == null) return;
-        String task1 = null;
-        String spot = null;
-        readyCount = 0;
-        List<PlayerListEntry> players = playerOrdering.sortedCopy(mc.getNetworkHandler().getPlayerList());
-        boolean flag = false;
-//        System.out.println("---");
-
-        for (PlayerListEntry info : players) {
-            String name = mc.inGameHud.getPlayerListHud().getPlayerName(info).getString();
-            if (name.contains("Commission")) {
-                flag = true;
-                continue;
-            }
-            if (flag) {
-
-                if (name.isEmpty()) {
-                    break;
-                }
-
-                String target = "";
-                boolean isReady = name.contains("DONE");
-                if(name.contains("Powder Collector"))continue;
-                // 优先级 slayer 带位置的 mining 不带位置的 mining
-                if (!isReady) {
-                    if (this.op_mining.isValue()) {
-                        if ("slayer".equals(task1)) {
-                            continue;
-                        }
-                        if (name.contains("Titanium") || name.contains("Mithril")) {
-                            target = (name.contains("Titanium") ? "Titanium" : "Mithril").trim();
-                            int index = name.indexOf(target);
-                            String old = spot;
-                            spot = name.substring(0, index).trim();
-//                            System.out.println(name);
-                            if (spot.isBlank() && "mining".equals(task1)) {
-                                spot = old;
-                                continue;
-                            }
-
-                            task1 = "mining";
-                            this.miningHelper.hold_block.clear();
-                            this.miningHelper.hold_block.addAll(titanium());
-                            this.miningHelper.hold_block.addAll(shit_mithril());
-                            this.miningHelper.hold_block.addAll(good_mithril());
-                        }
-                    }
-                    if (this.op_slayer.isValue()) {
-                        if ("slayer".equals(task1)) {
-                            return;
-                        }
-                        String t1 = null;
-                        String t2 = null;
-                        if (name.contains("Goblin Slayer") && !name.contains("Golden")&&op_slayer_goblin.isValue()) {
-                            t1 = "slayer";
-                            t2 = "goblin";
-                        }
-                        if (name.contains("Ice Walker Slayer")&&op_slayer_walker.isValue()) {
-                            t1 = "slayer";
-                            t2 = "walker";
-                        }
-                        if (name.contains("Treasure Hoarder Slayer")) {
-                            t1 = "slayer";
-                            t2 = "treasure";
-                        }
-                        if (t1 != null) {
-                            task1 = t1;
-                            spot = t2;
-                        }
-
-                    }
-                } else {
-                }
-                if (isReady) {
-                    readyCount++;
-                }
-
-            }
-
-        }
-        if (readyCount >= count.getIntValue()) {
-            task1 = "submit";
-        }
-        if (task1 != null) {
-            if (!task1.equals(this.task) || (spot != null && !spot.equals(this.spot))) {
-                message.sendMessage(Text.of("下一个任务:"+task1+" 位置:"+spot));
-                mc.options.forwardKey.setPressed(false);
-                mc.options.backKey.setPressed(false);
-                mc.options.leftKey.setPressed(false);
-                mc.options.rightKey.setPressed(false);
-                status = "none";
-            }
-            this.task = task1;
-            this.spot = spot;
-        }
-
-
     }
 
     private void shoot() {
@@ -312,7 +256,6 @@ public class AutoHotm implements IToggle, Hud {
                                 )
                         )
         );
-        ModuleManager.instance.disable(this);
     }
 
     private int to(CommandContext<FabricClientCommandSource> fabricClientCommandSourceCommandContext) {
@@ -409,8 +352,129 @@ public class AutoHotm implements IToggle, Hud {
         this.status = status;
     }
 
+    public void updateTask() {
+
+        if ((mc.currentScreen instanceof HandledScreen<?>)) return;
+        if (mc.getNetworkHandler() == null) return;
+        String task1 = null;
+        String spot = null;
+        readyCount = 0;
+        List<PlayerListEntry> players = playerOrdering.sortedCopy(mc.getNetworkHandler().getPlayerList());
+        boolean flag = false;
+//        System.out.println("---");
+
+        for (PlayerListEntry info : players) {
+            String name = mc.inGameHud.getPlayerListHud().getPlayerName(info).getString();
+            if (name.contains("Commission")) {
+                flag = true;
+                continue;
+            }
+            if (flag) {
+
+                if (name.isEmpty()) {
+                    break;
+                }
+
+                String target = "";
+                boolean isReady = name.contains("DONE");
+                if(name.contains("Powder Collector"))continue;
+                // 优先级 slayer 带位置的 mining 不带位置的 mining
+                if (!isReady) {
+                    if (this.op_mining.isValue()) {
+                        if ("slayer".equals(task1)) {
+                            continue;
+                        }
+                        if (name.contains("Titanium") || name.contains("Mithril")) {
+                            target = (name.contains("Titanium") ? "Titanium" : "Mithril").trim();
+                            int index = name.indexOf(target);
+                            String old = spot;
+                            spot = name.substring(0, index).trim();
+//                            System.out.println(name);
+                            if (spot.isBlank() && "mining".equals(task1)) {
+                                spot = old;
+                                continue;
+                            }
+
+                            task1 = "mining";
+                            this.miningHelper.hold_block.clear();
+                            this.miningHelper.hold_block.addAll(titanium());
+                            this.miningHelper.hold_block.addAll(shit_mithril());
+                            this.miningHelper.hold_block.addAll(good_mithril());
+                        }
+                    }
+                    if (this.op_slayer.isValue()) {
+                        if ("slayer".equals(task1)) {
+                            return;
+                        }
+                        String t1 = null;
+                        String t2 = null;
+                        if (name.contains("Goblin Slayer") && !name.contains("Golden")&&op_slayer_goblin.isValue()) {
+                            t1 = "slayer";
+                            t2 = "goblin";
+                        }
+                        if (name.contains("Glacite Walker") && op_slayer_walker.isValue()) {
+                            t1 = "slayer";
+                            t2 = "walker";
+                        }
+                        if (name.contains("Treasure Hoarder Slayer")) {
+                            t1 = "slayer";
+                            t2 = "treasure";
+                        }
+                        if (t1 != null) {
+                            task1 = t1;
+                            spot = t2;
+                        }
+
+                    }
+                } else {
+                }
+                if (isReady) {
+                    readyCount++;
+                }
+
+            }
+
+        }
+        if (readyCount >= count.getIntValue()) {
+            task1 = "submit";
+        }
+        if (task1 != null) {
+            if (!task1.equals(this.task) || (spot != null && !spot.equals(this.spot))) {
+                message.sendMessage(Text.of("下一个任务:"+task1+" 位置:"+spot));
+                mc.options.forwardKey.setPressed(false);
+                mc.options.backKey.setPressed(false);
+                mc.options.leftKey.setPressed(false);
+                mc.options.rightKey.setPressed(false);
+                status = "none";
+            }
+            this.task = task1;
+            this.spot = spot;
+        }
+
+
+    }
+
+    @EventTarget
+    public void onRender(WorldRenderEvent e) {
+        if (nodes == null) {
+            return;
+        }
+        Node last = null;
+        for (Node node : nodes) {
+            RenderUtils.translateView(e.getMatrixStack());
+            RenderSystem.disableDepthTest();
+            BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
+            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+            if (last != null) {
+                RenderUtils.setColor(Theme.getInstance().THEME_UI_SELECTED.geColor());
+                RenderUtils.drawLine(e.getMatrixStack(), last.toBlockPos(), node.toBlockPos());
+            }
+            last = node;
+            RenderSystem.enableDepthTest();
+        }
+    }
+
     private void doPathing() {
-        cd.update();
 
         if (step < nodes.size()) {
             this.aotv.switchTo();
@@ -438,6 +502,8 @@ public class AutoHotm implements IToggle, Hud {
             BlockPos bp1= hitResult.getBlockPos().withY(0);
             moveTick++;
             if(bp2.equals(bp1)){
+                cd.update();
+
                 if (((OneTickTimer) cd).getTick() <= 1) {
                     assert mc.interactionManager != null;
                     mc.interactionManager.interactItem(mc.player, mc.player.getActiveHand());
@@ -446,7 +512,6 @@ public class AutoHotm implements IToggle, Hud {
                 }
             }else {
                 if(moveTick>20*6){
-
                         mc.getNetworkHandler().sendCommand("warp forge");
                         this.status = "none";
                          moveTick=0;
@@ -465,7 +530,7 @@ public class AutoHotm implements IToggle, Hud {
             step = 0;
             return;
         }
-        if (nodes.get(step).toBlockPos().toCenterPos().distanceTo(mc.player.getPos()) < 1.7) {
+        if (nodes.get(step).toBlockPos().toCenterPos().distanceTo(mc.player.getPos()) < 2.4) {
             step++;
             Client.sendDebugMessage(Text.of("rotating to " + nodes.get(step - 1).toBlockPos().toCenterPos().add(0, 0.5, 0)));
             Client.sendDebugMessage(Text.of("step " + step + " of " + nodes.size()));
@@ -475,29 +540,46 @@ public class AutoHotm implements IToggle, Hud {
     }
 
     @EventTarget
-    public void onRender(WorldRenderEvent e) {
-        if (nodes == null) {
-            return;
-        }
-        Node last = null;
-        for (Node node : nodes) {
-            RenderUtils.translateView(e.getMatrixStack());
-            RenderSystem.disableDepthTest();
-            BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
-            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-            if (last != null) {
-                RenderUtils.setColor(Theme.getInstance().THEME_UI_SELECTED.geColor());
-                RenderUtils.drawLine(e.getMatrixStack(), last.toBlockPos(), node.toBlockPos());
-            }
-            last = node;
-            RenderSystem.enableDepthTest();
-        }
+    public void onWorldChange(WorldChangeEvent event) {
+        flag = true;
     }
 
     @EventTarget
     public void onTick(ClientTickEvent e) {
         if (tick++ % 20 == 0) {
         }
+//        if(this.flag&&this.focusTask==null&&!this.hypixelWay.way().equals("Dwarven Mines")){
+//            this.flag=false;
+//            this.focusTask="keepworld";
+//        }
+        if (this.hypixelWay.way().equals("Dwarven Mines")) {
+            this.flag = false;
+//            if(this.focusTask!=null&&this.focusTask.equals("keepworld")){
+//                this.focusTask=null;
+//            }
+        } else {
+            keepWorld();
+        }
+        if (focusTask != null) {
+            doKeepWorld();
+            doSwitchServer();
+            status = "none";
+            step = 0;
+            arrived = false;
+            miningHelper.hold = true;
+            this.tick = 0;
+            this.moveTick = 0;
+            this.cTick = 0;
+            this.nTick = 0;
+            this.blackList.clear();
+            this.target = null;
+            this.task = null;
+            this.spot = null;
+            this.name = null;
+            this.readyCount = 0;
+            return;
+        }
+
         if (!hypixelWay.way().equals("Dwarven Mines")) {
             // warp back or disable this module
             return;
@@ -595,7 +677,7 @@ public class AutoHotm implements IToggle, Hud {
                 if (e instanceof ArmorStandEntity) {
                     if (e.getPos().distanceTo(mc.player.getPos()) < 100) {
                         String name = e.getDisplayName().getString();
-                        if ((name.contains("Ice Walker") && spot.equals("walker")) || (name.contains("Goblin") || name.contains("Knife") && spot.equals("goblin")) || (name.contains("Treasure Hoarder") && spot.equals("treasure"))) {
+                        if ((name.contains("Glacite Walker") && spot.equals("walker")) || (name.contains("Goblin") || name.contains("Knife") && spot.equals("goblin")) || (name.contains("Treasure Hoarder") && spot.equals("treasure"))) {
                             if (!blackList.contains(e)) {
                                 if (mc.player.canSee(e)) {
                                     targets.add(e);

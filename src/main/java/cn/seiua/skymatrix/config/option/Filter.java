@@ -48,7 +48,7 @@ public interface Filter {
         if (!Objects.equals(id, "none")) {
             String type = SkyBlockUtils.getItemType(itemStack);
             if (type != null) {
-                if (type.equals("PICKAXE") || type.equals("DRILL")) {
+                if (type.equals("PICKAXE") || type.equals("DRILL") || type.equals("GAUNTLET")) {
                     return true;
                 }
             }

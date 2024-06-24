@@ -28,6 +28,9 @@ public class Setting {
     @Value(name = "lost focus")
     @Sign(sign = Signs.BETA)
     public ToggleSwitch focus = new ToggleSwitch(true);
+    @Value(name = "show full name")
+    @Sign(sign = Signs.BETA)
+    public ToggleSwitch full_name = new ToggleSwitch(true);
     @Value(name = "gui scale")
     @Sign(sign = Signs.BETA)
     public ValueSlider scale = new ValueSlider(1, 0.2, 2, 0.1);

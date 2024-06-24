@@ -72,4 +72,19 @@ public interface Selector {
         }
         return null;
     }
+
+    static String bestMiningTool() {
+        int i = 0;
+        for (ItemStack itemStack : SkyMatrix.mc.player.getInventory().main) {
+            if (i == 9) {
+                break;
+            }
+            if (Filter.miningTool(itemStack)) {
+                String uuid = SkyBlockUtils.getItemUuid(itemStack);
+                return uuid;
+            }
+            i++;
+        }
+        return null;
+    }
 }

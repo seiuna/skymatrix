@@ -81,6 +81,7 @@ public class ShinyBlockEsp implements IToggle {
         if (packet instanceof ParticleS2CPacket) {
             ParticleS2CPacket p = (ParticleS2CPacket) packet;
             String name = p.getParameters().asString();
+
             if (name.contains("minecraft:witch")) {
 
                 temp.add(new BlockPos((int) Math.round(p.getX()), (int) Math.round(p.getY()), (int) Math.round(p.getZ())));

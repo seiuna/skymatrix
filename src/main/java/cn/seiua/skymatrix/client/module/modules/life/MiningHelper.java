@@ -1,15 +1,13 @@
 package cn.seiua.skymatrix.client.module.modules.life;
 
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.Client;
-import cn.seiua.skymatrix.client.IToggle;
-import cn.seiua.skymatrix.client.RotationFaker;
-import cn.seiua.skymatrix.client.SmoothRotation;
+import cn.seiua.skymatrix.client.*;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
+import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.config.option.MultipleChoice;
@@ -17,12 +15,16 @@ import cn.seiua.skymatrix.config.option.ToggleSwitch;
 import cn.seiua.skymatrix.config.option.ValueSlider;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.ClientTickEvent;
+import cn.seiua.skymatrix.event.events.GameMessageEvent;
+import cn.seiua.skymatrix.event.events.ServerPacketEvent;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
 import cn.seiua.skymatrix.gui.Icons;
 import cn.seiua.skymatrix.utils.*;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
+import net.minecraft.network.packet.Packet;
+import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
 import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
@@ -48,12 +50,18 @@ public class MiningHelper implements IToggle {
     SmoothRotation smoothRotation;
     @Value(name = "angle")
     ValueSlider angle = new ValueSlider(50, 0, 180, 0.1f);
+    @Value(name = "mouse down")
+    ToggleSwitch mouse = new ToggleSwitch(true);
+    @Value(name = "powder")
+    ToggleSwitch powder = new ToggleSwitch(false);
     @Value(name = "blocks")
+    ToggleSwitch select = new ToggleSwitch(true);
+
+    @Value(name = "block")
+    @Hide(following = "blocks")
     MultipleChoice blocks = new MultipleChoice(SkyBlockUtils.getAllOre(), Icons.ORE);
     public boolean hold = false;
     public ArrayList<String> hold_block = new ArrayList<>();
-    @Value(name = "mouse down")
-    ToggleSwitch mouse = new ToggleSwitch(true);
 
     private List<BlockPos> blockPos;
     private BlockPos target;
@@ -66,7 +74,6 @@ public class MiningHelper implements IToggle {
 
     public boolean isTarget(BlockPos bp) {
         String name1 = (SkyMatrix.mc.world.getBlockState(bp).getBlock().getName()).getString();
-
         if (name1.contains("Grass")  || name1.contains("Leaves") || name1.contains("Wood") || name1.contains("Poppy") || name1.contains("Dandelion") || name1.contains("Azure") || name1.contains("Bluet")) {
             if (name1.equals("Grass Block")) return false;
             return true;
@@ -86,22 +93,56 @@ public class MiningHelper implements IToggle {
         }
         return false;
     }
+    int ct = 0;
+    private Vec3d chest;
 
+    @EventTarget
+    public void onBlock(ServerPacketEvent e) {
+        Packet packet = e.getPacket();
+        if (packet instanceof ParticleS2CPacket) {
+            ParticleS2CPacket p = (ParticleS2CPacket) packet;
+            String name = p.getParameters().asString();
+            if (name.contains("minecraft:crit")) {
+                Vec3d d = new Vec3d(p.getX(), p.getY(), p.getZ());
+                chest = d;
+
+
+            }
+        }
+    }
+
+    @EventTarget
+    public void onMessage(GameMessageEvent e) {
+        if (e.getText().contains("You received")) {
+            this.chest = null;
+
+        }
+    }
     @EventTarget
     public void onTick(ClientTickEvent e) {
         if (SkyMatrix.mc.crosshairTarget.getType().equals(HitResult.Type.BLOCK)) {
-
-
         }
-
-        client.setKeepBlockBreaking(!mouse.isValue());
-        if ((!mouse.isValue() || (SkyMatrix.mc.currentScreen == null && SkyMatrix.mc.options.attackKey.isPressed())) || hold) {
+        if (powder.isValue() && HypixelWay.getInstance().way().contains("Crystal")) {
+            if (chest != null) {
+                ct++;
+//                if(ct>100){
+//                    chest=null;
+//                    ct=0;
+//                    return;
+//                }
+                client.setKeepBlockBreaking(false);
+                smoothRotation.smoothLook(RotationUtils.getNeededRotationsFix18(chest), 2.4f, null, false);
+                return;
+            }
+        }
+        if ((mouse.isValue() && SkyMatrix.mc.options.attackKey.isPressed()) || hold || !mouse.isValue()) {
+            client.setKeepBlockBreaking(true);
             SkyMatrix.mc.options.attackKey.setPressed(true);
             ItemStack is = SkyMatrix.mc.player.getInventory().getMainHandStack();
             String type = SkyBlockUtils.getItemType(is);
             String name = is.getItem().toString().toLowerCase();
             if (name.contains("Air")) return;
-            if ((name.contains("pickaxe") || name.contains("hoe") || name.contains("Axe") || name.contains("shovel")) || ((type != null) && (type.equals("AXE") || type.equals("DRILL") || type.equals("PICKAXE") || type.equals("SHOVEL") || type.equals("HOE")))) {
+            if ((name.contains("pickaxe") || name.contains("hoe") || name.contains("Axe") || name.contains("shovel")) || ((type != null) && (type.equals("AXE") || type.equals("DRILL") || type.equals("PICKAXE") || type.equals("SHOVEL") || type.equals("HOE") || type.equals("GAUNTLET")))) {
                 blockPos = new ArrayList<>();
                 Vec3d viewPos = Vec3d.fromPolar(rotationFaker.getServerPitch(), rotationFaker.getServerYaw());
                 Vec3d viewc = SkyMatrix.mc.player.getRotationVecClient();
@@ -124,12 +165,18 @@ public class MiningHelper implements IToggle {
                             if (!isTarget(cp)) {
                                 continue;
                             }
+                            if (powder.isValue()) {
+                                if (cp.getY() < SkyMatrix.mc.player.getBlockPos().getY()) {
+                                    continue;
+                                }
+                            }
                             vec3d = canSee(cp);
-
-
                             if (vec3d != null) {
                                 Vec3d vec3d1 = cp.toCenterPos().subtract(playerPos);
-                                double angle = MathUtils.calculateAngle(vec3d1, viewPos);
+                                double angle = SkyMatrix.mc.player.getPos().distanceTo(cp.toCenterPos());
+                                if (hold) {
+                                    angle = MathUtils.calculateAngle(vec3d1, viewPos);
+                                }
 
                                 if (target == null) {
                                     target = cp;
@@ -155,16 +202,19 @@ public class MiningHelper implements IToggle {
                         holdVec = vec3d1;
                     } else {
                         holdTick++;
-                        if (holdTick > 100) {
+                        if (holdTick > 100 || (powder.isValue() && !hold)) {
                             black.put(String.valueOf(Objects.hash(this.target.getX(), this.target.getY(), this.target.getZ())), 20);
                         }
                     }
-                    smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 2.4f, null, true);
+                    smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 2.4f, null, false || hold);
                 } else {
 
                 }
 
             }
+        } else {
+            client.setKeepBlockBreaking(false);
+
         }
     }
     private static final ArrayList<Vec3d> SHIFTING = new ArrayList<>();
