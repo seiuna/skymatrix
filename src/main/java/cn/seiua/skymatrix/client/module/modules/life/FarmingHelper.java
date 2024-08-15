@@ -55,9 +55,10 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 
-@Event
-@Sign(sign = Signs.BETA)
-@SModule(name = "farmingHelper", category = "life", disable = true)
+@Deprecated
+//@Event
+//@Sign(sign = Signs.BETA)
+//@SModule(name = "farmingHelper", category = "life", disable = true)
 public class FarmingHelper implements IToggle, Hud {
 
     @Use
@@ -613,7 +614,7 @@ public class FarmingHelper implements IToggle, Hud {
         this.evictingQueue.clear();
         ItemStack itemStack = SkyMatrix.mc.player.getInventory().getMainHandStack();
         if (itemStack != null) {
-            NbtCompound nbtCompound = itemStack.getNbt();
+            NbtCompound nbtCompound = null;
             if (nbtCompound != null) {
                 NbtCompound aa = nbtCompound.getCompound("ExtraAttributes");
                 if (aa != null) {
@@ -669,7 +670,7 @@ public class FarmingHelper implements IToggle, Hud {
         ClickGui.fontRenderer20.drawString(matrixStack, startX, startY, getV());
         ItemStack itemStack = SkyMatrix.mc.player.getInventory().getMainHandStack();
         if (itemStack != null) {
-            NbtCompound nbtCompound = itemStack.getNbt();
+            NbtCompound nbtCompound = null;
             if (nbtCompound != null) {
                 NbtCompound aa = nbtCompound.getCompound("ExtraAttributes");
                 long cc = 0;

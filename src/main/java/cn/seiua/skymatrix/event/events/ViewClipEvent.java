@@ -11,8 +11,8 @@ public class ViewClipEvent extends Event {
         this.dis = dis;
     }
 
-    public double getDis() {
-        return dis;
+    public float getDis() {
+        return (float) dis;
     }
 
     public void setDis(double dis) {

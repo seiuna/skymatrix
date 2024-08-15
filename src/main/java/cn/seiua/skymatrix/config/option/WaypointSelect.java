@@ -62,7 +62,6 @@ public class WaypointSelect implements Serializable, UIComponent {
     }
 
     public boolean Invalid() {
-
         HypixelWay hypixelWay = HypixelWay.getInstance();
         return this.value.startsWith(this.filter) && hypixelWay.isIn(Waypoint.getInstance().getByName(this.value).world);
     }
@@ -73,7 +72,6 @@ public class WaypointSelect implements Serializable, UIComponent {
         UIWaypoint waypoint = new UIWaypoint(optionInfo);
         return waypoint;
     }
-
     public WaypointGroupEntity waypointGroup() {
         WaypointGroupEntity entity = Waypoint.getInstance().getByName(this.value);
         if (entity == null) {

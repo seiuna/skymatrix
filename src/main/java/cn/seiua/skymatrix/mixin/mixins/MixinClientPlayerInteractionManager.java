@@ -17,37 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(ClientPlayerInteractionManager.class)
 public class MixinClientPlayerInteractionManager {
-    @Shadow
-    private GameMode gameMode;
 
-    @Inject(at = @At("HEAD"), method = "interactItem")
-    public void onInteractItem(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        InteractItemEvent event = new InteractItemEvent(player.getStackInHand(hand), hand);
-        event.call();
-        InteractItemMEvent event1 = new InteractItemMEvent(player.getStackInHand(hand), hand, "HEAD");
-        event1.call();
 
-        if (event.isCancelled()) cir.cancel();
-    }
-
-    @Inject(at = @At("RETURN"), method = "interactItem")
-    public void onInteractItemPost(PlayerEntity player, Hand hand, CallbackInfoReturnable<ActionResult> cir) {
-        InteractItemMEvent event = new InteractItemMEvent(player.getStackInHand(hand), hand, "RETURN");
-        event.call();
-
-        if (event.isCancelled()) cir.cancel();
-    }
-
-    /**
-     * @author seiuna
-     * @reason reach
-     */
-    @Overwrite
-    public float getReachDistance() {
-        ReachEvent event = new ReachEvent(4.5f);
-        event.call();
-        return this.gameMode.isCreative() ? 5.0F : event.getReach();
-    }
 
 
 }

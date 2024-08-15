@@ -3,20 +3,31 @@ package cn.seiua.skymatrix.client;
 import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.component.*;
 import cn.seiua.skymatrix.client.config.Setting;
+import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.event.EventTarget;
-import cn.seiua.skymatrix.event.events.ClientTickEvent;
-import cn.seiua.skymatrix.event.events.GameMessageEvent;
-import cn.seiua.skymatrix.event.events.HandleKeyInputBeforeEvent;
-import cn.seiua.skymatrix.event.events.ServerPacketEvent;
+import cn.seiua.skymatrix.event.events.*;
 import com.google.common.collect.EvictingQueue;
+import com.mojang.brigadier.arguments.StringArgumentType;
+import com.mojang.brigadier.context.CommandContext;
+import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
+import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.option.KeyBinding;
+import net.minecraft.command.argument.BlockPosArgumentType;
+import net.minecraft.command.argument.DefaultPosArgument;
+import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.Text;
+import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.Vec3d;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
@@ -38,16 +49,126 @@ public final class Client {
     private Setting setting;
     public int stage;
     public static File root = new File(MinecraftClient.getInstance().runDirectory, "skymartix");
-
+    public static HashSet<Object> blackList = new HashSet<>();
     private static final Queue<Text> priorityQueue = EvictingQueue.create(40);
+    public static boolean m_ability = false;
 
+    // block breaking progress start
+    private boolean keepBlockBreaking;
+    public static boolean HandleInputBlockBreaking() {
+        if(!instance.keepBlockBreaking)return false;
+        SkyMatrix.mc.attackCooldown= 0;
+        return true;
+    }
+    @EventTarget
+    private void onHandleKeyInputBeforeEvent(HandleKeyInputBeforeEvent event) {
+        if(!keepBlockBreaking)return;
+        screen=MinecraftClient.getInstance().currentScreen;
+        MinecraftClient.getInstance().currentScreen=null;
+    }
+    @EventTarget
+    private void onHandleKeyInputBeforeEvent(HandleKeyInputAfterEvent event) {
+        if(!keepBlockBreaking)return;
+        if(screen!=null)
+            MinecraftClient.getInstance().currentScreen=screen;
+    }
+    public static boolean doBlackList(Object object) {
+        if(SkyMatrix.mc.crosshairTarget instanceof BlockHitResult){
+            if(blackList.contains(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos().add(0,0,0))||blackList.contains(SkyMatrix.mc.world.getBlockState(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos()).getBlock().getName().toString())){
+                return true;
+            }
+        }
+        return false;
+    }
+    // block breaking progress end
     @Init(level = 999)
     public void start() {
         root.mkdirs();
         instance = this;
+
+
     }
 
-    private boolean keepBlockBreaking;
+    @EventTarget
+    public void registerCommand(CommandRegisterEvent e) {
+        e.getDispatcher().register(
+                ClientCommandManager.literal("breakingBlackList")
+                        .then(
+                                ClientCommandManager.literal("addName").then(
+                                        ClientCommandManager.argument("name", StringArgumentType.string()).executes(this::add)
+                                )
+                        ).then(
+                                ClientCommandManager.literal("addPos").then(
+                                        ClientCommandManager.argument("pos", BlockPosArgumentType.blockPos()).executes(this::add)
+                                )
+                        )  .then(
+                                ClientCommandManager.literal("removeName").then(
+                                        ClientCommandManager.argument("name", StringArgumentType.string()).executes(this::remove)
+                                )
+                        ).then(
+                                ClientCommandManager.literal("removePos").then(
+                                        ClientCommandManager.argument("pos", BlockPosArgumentType.blockPos()).executes(this::remove)
+                                )
+                        ).then(
+                                ClientCommandManager.literal("show").executes(this::showBlockList)
+                        ).then(
+                                ClientCommandManager.literal("clear").executes(this::clear)
+                        )
+        );
+    }
+
+    private int clear(CommandContext<FabricClientCommandSource> fabricClientCommandSourceCommandContext) {
+        blackList.clear();
+        return 0;
+    }
+
+    private int add(CommandContext<FabricClientCommandSource> fccsc) {
+        String str = null;
+        BlockPos blockPos=null;
+        try {
+            str = fccsc.getArgument("name", String.class);
+        }catch (IllegalArgumentException ignored){
+        }finally {
+            DefaultPosArgument d= fccsc.getArgument("pos", DefaultPosArgument.class);
+            Vec3d vec3d = fccsc.getSource().getPosition();
+            blockPos =BlockPos.ofFloored(new Vec3d(d.x.toAbsoluteCoordinate(vec3d.x), d.y.toAbsoluteCoordinate(vec3d.y), d.z.toAbsoluteCoordinate(vec3d.z)));
+
+        }
+        if(str!=null)
+            blackList.add(str);
+        if(blockPos!=null)
+            blackList.add(blockPos);
+        return 0;
+    }
+
+    private int remove(CommandContext<FabricClientCommandSource> fccsc) {
+        String str = null;
+        BlockPos blockPos=null;
+        try {
+            str = fccsc.getArgument("name", String.class);
+        }catch (IllegalArgumentException ignored){
+        }finally {
+            DefaultPosArgument d= fccsc.getArgument("pos", DefaultPosArgument.class);
+            Vec3d vec3d = fccsc.getSource().getPosition();
+            blockPos =BlockPos.ofFloored(new Vec3d(d.x.toAbsoluteCoordinate(vec3d.x), d.y.toAbsoluteCoordinate(vec3d.y), d.z.toAbsoluteCoordinate(vec3d.z)));
+        }
+        if(str!=null)
+            blackList.remove(str);
+        if(blockPos!=null)
+            blackList.remove(blockPos);
+        return 0;
+    }
+    private int showBlockList(CommandContext<FabricClientCommandSource> fabricClientCommandSourceCommandContext) {
+        if(blackList.isEmpty()){
+            Client.sendMessage(Text.of("blackList is empty"));
+            return 0;
+        }
+        for (Object o : blackList) {
+            Client.sendMessage(Text.of(o.toString()));
+        }
+        return 0;
+
+    }
 
     public boolean isKeepBlockBreaking() {
         return keepBlockBreaking;
@@ -56,23 +177,15 @@ public final class Client {
     public void setKeepBlockBreaking(boolean keepBlockBreaking) {
         this.keepBlockBreaking = keepBlockBreaking;
         if (!keepBlockBreaking) {
-
+            SkyMatrix.mc.interactionManager.cancelBlockBreaking();
         }
     }
+    Screen screen;
 
-    @EventTarget
-    private void onHandleKeyInputBeforeEvent(HandleKeyInputBeforeEvent event) {
-        if (this.keepBlockBreaking && SkyMatrix.mc.currentScreen != null) {
-            SkyMatrix.mc.attackCooldown = 0;
-            SkyMatrix.mc.handleBlockBreaking(true);
-        }
-
-    }
     private boolean flag;
 
     @EventTarget
     public void ClientTickEvent(ClientTickEvent e) {
-
         if (!Objects.equals(setting.title.getValue(), "")) {
             SkyMatrix.mc.getWindow().setTitle(setting.title.getValue());
         }
@@ -91,6 +204,12 @@ public final class Client {
     public void onPacket(ServerPacketEvent event) {
         if (event.getPacket() instanceof GameMessageS2CPacket) {
             GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) event.getPacket();
+            if(eventPacket.content().getString().contains("You used your Mining Speed Boost Pickaxe Ability!")){
+                m_ability=true;
+            }
+            if(eventPacket.content().getString().contains("Your Mining Speed Boost has expired!")){
+                m_ability=false;
+            }
             new GameMessageEvent(eventPacket.content()).call();
         }
     }

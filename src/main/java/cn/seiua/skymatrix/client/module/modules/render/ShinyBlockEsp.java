@@ -80,7 +80,7 @@ public class ShinyBlockEsp implements IToggle {
         Packet packet = e.getPacket();
         if (packet instanceof ParticleS2CPacket) {
             ParticleS2CPacket p = (ParticleS2CPacket) packet;
-            String name = p.getParameters().asString();
+            String name = p.getParameters().toString();
 
             if (name.contains("minecraft:witch")) {
 
@@ -144,26 +144,25 @@ public class ShinyBlockEsp implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-        if (!this.way.isIn("The End")) return;
-//        e.getMatrixStack().push();
-        RenderSystem.disableDepthTest();
-        RenderUtils.translateView(e.getMatrixStack());
-        HashSet<BlockTarget> render = new HashSet<>(renderList);
-        LivingEntity player = SkyMatrix.mc.player;
-        for (BlockTarget blockTarget : render) {
-
-            assert player != null;
-            double v = Math.sqrt(Math.pow(blockTarget.getPos().getX() - player.getX(), 2) + Math.pow(blockTarget.getPos().getZ() - player.getZ(), 2));
-            if (!(v <= range.maxValue().doubleValue() && v >= range.minValue().doubleValue())) {
-                continue;
-            }
-            blockTarget.render(e.getMatrixStack(), e.getTickDelta());
-        }
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
-//        e.getMatrixStack().pop();
+//        if (!this.way.isIn("The End")) return;
+////        e.getMatrixStack().push();
+//        RenderSystem.disableDepthTest();
+//        RenderUtils.translateView(e.getMatrixStack());
+//        HashSet<BlockTarget> render = new HashSet<>(renderList);
+//        LivingEntity player = SkyMatrix.mc.player;
+//        for (BlockTarget blockTarget : render) {
+//
+//            assert player != null;
+//            double v = Math.sqrt(Math.pow(blockTarget.getPos().getX() - player.getX(), 2) + Math.pow(blockTarget.getPos().getZ() - player.getZ(), 2));
+//            if (!(v <= range.maxValue().doubleValue() && v >= range.minValue().doubleValue())) {
+//                continue;
+//            }
+//            blockTarget.render(e.getMatrixStack(), e.getTickDelta());
+//        }
+//        RenderSystem.disableBlend();
+//        RenderSystem.enableDepthTest();
+////        e.getMatrixStack().pop();
     }
-
     @Override
     public void disable() {
         this.renderList = null;

@@ -252,33 +252,33 @@ public class Killaura implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-
-        if (target == null || !target.isAlive() || antiBot.isBot(target.getUuid().toString()) || target.getWorld() != SkyMatrix.mc.world) {
-            lastAngle = 9999;
-            lastDistance = 9999;
-            target = null;
-            smoothRotation.enable();
-            return;
-        }
-        RenderSystem.disableDepthTest();
-        RenderSystem.enableBlend();
-        RenderUtils.translateView(e.getMatrixStack());
-        RenderUtils.translatePos(e.getMatrixStack(), target.getEyePos());
-        RenderUtils.setColor(new Color(0, 255, 220, 70));
-        RenderUtils.drawSolidBox(new Box(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5), e.getMatrixStack());
-        e.getMatrixStack().pop();
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
-        EntityHitResult entityHitResult = RaycastUtils.raycast(this.range.getValue().doubleValue(), e.getTickDelta());
-
-        if (entityHitResult != null && entityHitResult.getEntity() == this.target) {
-            smoothRotation.disable();
-        } else {
-            smoothRotation.enable();
-        }
-        if (SkyMatrix.mc.player.fishHook != null) {
-
-        }
+//
+//        if (target == null || !target.isAlive() || antiBot.isBot(target.getUuid().toString()) || target.getWorld() != SkyMatrix.mc.world) {
+//            lastAngle = 9999;
+//            lastDistance = 9999;
+//            target = null;
+//            smoothRotation.enable();
+//            return;
+//        }
+//        RenderSystem.disableDepthTest();
+//        RenderSystem.enableBlend();
+//        RenderUtils.translateView(e.getMatrixStack());
+//        RenderUtils.translatePos(e.getMatrixStack(), target.getEyePos());
+//        RenderUtils.setColor(new Color(0, 255, 220, 70));
+//        RenderUtils.drawSolidBox(new Box(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5), e.getMatrixStack());
+//        e.getMatrixStack().pop();
+//        RenderSystem.disableBlend();
+//        RenderSystem.enableDepthTest();
+//        EntityHitResult entityHitResult = RaycastUtils.raycast(this.range.getValue().doubleValue(), e.getTickDelta());
+//
+//        if (entityHitResult != null && entityHitResult.getEntity() == this.target) {
+//            smoothRotation.disable();
+//        } else {
+//            smoothRotation.enable();
+//        }
+//        if (SkyMatrix.mc.player.fishHook != null) {
+//
+//        }
 
 
     }

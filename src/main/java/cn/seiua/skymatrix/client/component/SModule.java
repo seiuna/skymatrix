@@ -12,6 +12,8 @@ public @interface SModule {
 
     String category();
 
-
     boolean disable() default false;
+
+
+    String[] require() default "";
 }

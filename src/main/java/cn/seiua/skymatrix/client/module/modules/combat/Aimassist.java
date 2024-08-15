@@ -148,24 +148,24 @@ public class Aimassist implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-        EntityHitResult entityHitResult = RaycastUtils.raycast(this.range.getValue().doubleValue(), e.getTickDelta());
-        if (entityHitResult == null || entityHitResult.getEntity() != target) {
-            smoothRotation.enable();
-            realTarget = null;
-        } else {
-            realTarget = entityHitResult.getEntity();
-            RenderSystem.disableDepthTest();
-            RenderSystem.enableBlend();
-            RenderUtils.translateView(e.getMatrixStack());
-            RenderUtils.translatePos(e.getMatrixStack(), entityHitResult.getEntity().getEyePos());
-            RenderUtils.setColor(new Color(0, 255, 220, 70));
-            RenderUtils.drawSolidBox(new Box(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5), e.getMatrixStack());
-            e.getMatrixStack().pop();
-            RenderSystem.disableBlend();
-            RenderSystem.enableDepthTest();
-            smoothRotation.disable();
-
-        }
+//        EntityHitResult entityHitResult = RaycastUtils.raycast(this.range.getValue().doubleValue(), e.getTickDelta());
+//        if (entityHitResult == null || entityHitResult.getEntity() != target) {
+//            smoothRotation.enable();
+//            realTarget = null;
+//        } else {
+//            realTarget = entityHitResult.getEntity();
+//            RenderSystem.disableDepthTest();
+//            RenderSystem.enableBlend();
+//            RenderUtils.translateView(e.getMatrixStack());
+//            RenderUtils.translatePos(e.getMatrixStack(), entityHitResult.getEntity().getEyePos());
+//            RenderUtils.setColor(new Color(0, 255, 220, 70));
+//            RenderUtils.drawSolidBox(new Box(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5), e.getMatrixStack());
+//            e.getMatrixStack().pop();
+//            RenderSystem.disableBlend();
+//            RenderSystem.enableDepthTest();
+//            smoothRotation.disable();
+//
+//        }
     }
 
     @Override

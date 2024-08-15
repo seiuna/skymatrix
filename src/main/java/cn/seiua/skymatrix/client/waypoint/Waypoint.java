@@ -6,6 +6,7 @@ import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.*;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.*;
+import cn.seiua.skymatrix.client.module.modules.life.PowderMining;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.event.EventTarget;
@@ -23,12 +24,10 @@ import cn.seiua.skymatrix.message.MessageBuilder;
 import cn.seiua.skymatrix.render.BlockLocTarget;
 import cn.seiua.skymatrix.render.BlockTarget;
 import cn.seiua.skymatrix.render.BlockTextTarget;
-import cn.seiua.skymatrix.utils.ColorUtils;
-import cn.seiua.skymatrix.utils.MathUtils;
-import cn.seiua.skymatrix.utils.RenderUtils;
-import cn.seiua.skymatrix.utils.RotationUtils;
+import cn.seiua.skymatrix.utils.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
@@ -36,6 +35,7 @@ import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.gui.screen.Screen;
+import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
@@ -43,7 +43,9 @@ import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
+import org.joml.Matrix4f;
 import org.lwjgl.glfw.GLFW;
+import org.lwjgl.opengl.GL11;
 
 import java.awt.*;
 import java.util.List;
@@ -159,7 +161,7 @@ public class Waypoint extends Screen implements Hud {
     @EventTarget
     public void registerCommand(CommandRegisterEvent e) {
         e.getDispatcher().register(
-                ClientCommandManager.literal("waypoint")
+                ClientCommandManager.literal("wp")
                         .then(
                                 ClientCommandManager.literal("edit").executes(this::editCommand)
                         ).then(
@@ -257,31 +259,26 @@ public class Waypoint extends Screen implements Hud {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-        current = null;
+//        current = null;
         if (this.status == Status.EDIT) {
             HitResult hitResult = SkyMatrix.mc.player.raycast(100, e.getTickDelta(), false);
             if (hitResult.getType().equals(HitResult.Type.BLOCK)) {
-                RenderUtils.translateView(e.getMatrixStack());
-                RenderSystem.disableDepthTest();
-                BlockLocTarget blockLocTarget = new BlockLocTarget(((BlockHitResult) hitResult).getBlockPos(), Theme.getInstance().THEME::geColor);
-                blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-                RenderSystem.enableDepthTest();
-
-                current = ((BlockHitResult) hitResult).getBlockPos();
+                current=((BlockHitResult)hitResult).getBlockPos();
+                RenderUtilsV2.renderOutlineBlock(e.getMatrixStack(),((BlockHitResult)hitResult).getBlockPos(),new Color(255,255,255,255));
             }
             drawCurrent(e.getMatrixStack(), e.getTickDelta(), this.waypoints.get(name));
         }
-        if (this.status == Status.NONE) {
-            for (String name : this.waypoints.keySet()) {
-
-                WaypointGroupEntity entity = this.waypoints.get(name);
-                if (entity.world.equals(this.way.way())) {
-                    drawCurrent(e.getMatrixStack(), e.getTickDelta(), entity);
-                }
-
-
-            }
-        }
+//        if (this.status == Status.NONE) {
+//            for (String name : this.waypoints.keySet()) {
+//
+//                WaypointGroupEntity entity = this.waypoints.get(name);
+//                if (entity.world.equals(this.way.way())) {
+//                    drawCurrent(e.getMatrixStack(), e.getTickDelta(), entity);
+//                }
+//
+//
+//            }
+//        }
     }
 
     public String name;
@@ -367,27 +364,25 @@ public class Waypoint extends Screen implements Hud {
     @Override
     public boolean mouseDragged(double mouseX, double mouseY, int button, double deltaX, double deltaY) {
         return super.mouseDragged(mouseX, mouseY, button, deltaX, deltaY);
+
     }
 
     public void drawCurrent(MatrixStack matrixStack, float delta, WaypointGroupEntity entity) {
         if (!entity.show) return;
         if (entity.remove) return;
-        RenderSystem.disableDepthTest();
-        RenderUtils.translateView(matrixStack);
         BlockPos last = null;
         if (entity != null) {
             for (WaypointEntity waypoint : entity.getWaypoints()) {
-                BlockTarget blockTarget = new BlockTextTarget(waypoint.toBlockPos(), ColorUtils::rainbowColorWorld, waypoint.name);
+                BlockTarget blockTarget = new BlockTextTarget(waypoint.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor, waypoint.name);
                 blockTarget.render(matrixStack, delta);
                 if (last != null) {
-                    RenderUtils.drawLine(matrixStack, last, blockTarget.getPos());
+                    RenderUtilsV2.renderLine(matrixStack, last, blockTarget.getPos(),Theme.getInstance().THEME_UI_SELECTED.value,2f);
                 }
                 last = blockTarget.getPos();
             }
             if (last != null) {
                 if (current != null) {
-                    RenderUtils.drawLine(matrixStack, last, current);
-
+                    RenderUtilsV2.renderLine(matrixStack, last, current,Theme.getInstance().THEME_UI_SELECTED.value,2f);
                 }
             }
 
@@ -398,7 +393,6 @@ public class Waypoint extends Screen implements Hud {
             blockTarget.render(matrixStack, delta);
         }
 
-        RenderSystem.enableBlend();
     }
 
     ArrayList<UIWaypoint> waypointArrayList = new ArrayList<>();

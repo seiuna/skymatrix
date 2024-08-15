@@ -107,24 +107,39 @@ public class ComponentHandler {
             throw new RuntimeException(e);
         }
     }
-
-
     public static void setup() {
-
         try {
-
-            for (String s : ComponentHandler.clazzs) {
+            C:for (String s : ComponentHandler.clazzs) {
                 Class c = ComponentHandler.class.getClassLoader().loadClass(s);
                 if (ReflectUtils.withAnnotation(c, Component.class)) {
-                    Object o = c.newInstance();
+                    Component component = (Component) c.getAnnotation(Component.class);
+                    SModule sModule = (SModule) c.getAnnotation(SModule.class);
+//                    if(sModule!=null){
+//                        for (String arg : sModule.require()) {
+//                            if( !FabricLoader.getInstance().isModLoaded(arg)){
+//                                continue C;
+//                            }
+//                        }
+//                    }else if (component != null) {
+//                        for (String arg : component.require()) {
+//                            if( !FabricLoader.getInstance().isModLoaded(arg)){
+//                                continue C;
+//                            }
+//                        }
+//                    }
+                    Object o = null;
+                     try {
+                         o = c.newInstance();
+                     }catch (Exception e){
+                        continue C;
+                     }
                     classes.put(c, o);
-                    logger.info("Component Loaded " + o.getClass().toString());
-                    //加载自动写入
+                    logger.debug("Component Loaded " + o.getClass().toString());
                     for (Field f : c.getDeclaredFields()) {
                         Annotation annotation = f.getAnnotation(Use.class);
                         if (annotation != null) {
                             use.put(f, o);
-                            logger.info("Wrote Loaded " + o.getClass().toString() + "." + f.getName());
+                            logger.debug("Wrote Loaded " + o.getClass().toString() + "." + f.getName());
                         }
                     }
                     //加载初始化方法
@@ -132,7 +147,7 @@ public class ComponentHandler {
                         Annotation annotation = m.getAnnotation(Init.class);
                         if (annotation != null) {
                             init.put(o, new MethodA(m, ((Init) annotation).level(), o));
-                            logger.info("Initialization Loaded " + o.getClass().toString() + "." + m.getName());
+                            logger.debug("Initialization Loaded " + o.getClass().toString() + "." + m.getName());
                         }
                     }
                 }
@@ -152,7 +167,7 @@ public class ComponentHandler {
                 } else {
                     o.set(target, classes.get(o.getType()));
                 }
-                logger.info("Wrote " + o.getClass().toString() + "." + o.getName());
+                logger.debug("Write " + o.getClass().toString() + "." + o.getName());
             }
             ArrayList<MethodA> arrayList = new ArrayList<>(init.values());
             arrayList.sort(Comparator.comparingInt(MethodA::getLevel));
@@ -160,7 +175,7 @@ public class ComponentHandler {
                 MethodA target = o;
                 target.getMethod().setAccessible(true);
                 target.getMethod().invoke(target.getObject());
-                logger.info("Inited " + target.getObject().getClass().toString() + "." + target.getMethod().getName());
+                logger.info("Init " + target.getObject().getClass().toString() + "." + target.getMethod().getName());
             }
 
         } catch (IllegalArgumentException e) {
@@ -168,8 +183,6 @@ public class ComponentHandler {
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {
-            throw new RuntimeException(e);
-        } catch (InstantiationException e) {
             throw new RuntimeException(e);
         } catch (IllegalAccessException e) {
             throw new RuntimeException(e);

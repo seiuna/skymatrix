@@ -2,23 +2,25 @@
   "required": true,
   "minVersion": "0.8",
   "package": "cn.seiua.skymatrix.mixin.mixins",
-  "compatibilityLevel": "JAVA_17",
+  "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "MixinBlock",
-    "MixinBlockOcclusionCache",
-    "MixinClientWorld",
-    "MixinEntity",
-    "MixinSodiumFluidRenderer"
+    "MixinClientConnection"
   ],
   "client": [
+    "MixinAbstractBlockStatev",
+    "MixinBlock",
     "MixinBlockModelRenderer",
+    "MixinBlockOcclusionCache",
     "MixinCamera",
     "MixinClientChunkManager",
     "MixinClientCommonNetworkHandler",
     "MixinClientPlayerEntity",
     "MixinClientPlayerInteractionManager",
     "MixinClientPlayNetworkHandler",
+    "MixinClientWorld",
+    "MixinEntity",
     "MixinEntityRenderer",
+    "MixinFluidRenderer",
     "MixinGameRenderer",
     "MixinHandledScreen",
     "MixinInGameHud",
@@ -26,8 +28,11 @@
     "MixinLivingEntityRenderer",
     "MixinMinecraftClient",
     "MixinMouse",
+    "MixinSodiumFluidRenderer",
     "MixinSplashOverlay",
-    "MixinTerrainRenderContext"
+    "MixinStainedGlassBlock",
+    "MixinTerrainRenderContext",
+    "MixinWorldRenderer"
   ],
   "injectors": {
     "defaultRequire": 1

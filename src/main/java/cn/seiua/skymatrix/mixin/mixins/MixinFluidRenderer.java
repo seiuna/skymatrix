@@ -17,11 +17,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 @Mixin(FluidRenderer.class)
 public class MixinFluidRenderer {
 
-    @Inject(method = "render", at = @At(value = "HEAD"), remap = false)
+    @Inject(method = "render", at = @At(value = "HEAD"))
     private void isFluidOccluded(BlockRenderView world, BlockPos pos, VertexConsumer vertexConsumer, BlockState blockState, FluidState fluidState, CallbackInfo ci) {
-
-
         new FluidRenderEvent(pos, fluidState).call();
-
     }
 }

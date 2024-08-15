@@ -158,7 +158,7 @@ public class WPProcess extends Thread {
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
-            if (!SkyMatrix.mc.world.getBlockState(wp.toBlockPos()).canPathfindThrough(SkyMatrix.mc.world, wp.toBlockPos(), NavigationType.AIR)) {
+            if (!SkyMatrix.mc.world.getBlockState(wp.toBlockPos()).canPathfindThrough( NavigationType.AIR)) {
                 t++;
             }
             pf = false;

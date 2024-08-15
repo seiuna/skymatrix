@@ -61,16 +61,16 @@ public class Farming implements Hud {
 
     public long getCount() {
         assert SkyMatrix.mc.player != null;
-        ItemStack itemStack = SkyMatrix.mc.player.getInventory().getMainHandStack();
-        if (itemStack != null) {
-            NbtCompound nbtCompound = itemStack.getNbt();
-            if (nbtCompound != null) {
-                NbtCompound aa = nbtCompound.getCompound("ExtraAttributes");
-                if (aa != null) {
-                    return aa.getLong("farmed_cultivating");
-                }
-            }
-        }
+//        ItemStack itemStack = SkyMatrix.mc.player.getInventory().getMainHandStack();
+//        if (itemStack != null) {
+//            NbtCompound nbtCompound = itemStack.getNbt();
+//            if (nbtCompound != null) {
+//                NbtCompound aa = nbtCompound.getCompound("ExtraAttributes");
+//                if (aa != null) {
+//                    return aa.getLong("farmed_cultivating");
+//                }
+//            }
+//        }
         return -1;
     }
 

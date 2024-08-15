@@ -21,6 +21,7 @@ import cn.seiua.skymatrix.utils.ReflectUtils;
 import cn.seiua.skymatrix.utils.RenderUtils;
 import cn.seiua.skymatrix.utils.TickTimer;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.component.ComponentType;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
@@ -89,7 +90,6 @@ public class FairyEsp implements IToggle {
             for (Entity entity : SkyMatrix.mc.world.getEntities()) {
                 if (entity instanceof ArmorStandEntity) {
                     ArmorStandEntity entity1 = (ArmorStandEntity) entity;
-
                     if (isTarget(entity1) && aura.isValue()) {
                         if (SkyMatrix.mc.player.getEyePos().distanceTo(entity.getPos().add(0, 2, 0)) < 3.5) {
                             if (!this.valueHolder.value.getOrDefault(entity.getBlockPos().hashCode() + HypixelWay.getInstance().way(), false)) {
@@ -120,7 +120,6 @@ public class FairyEsp implements IToggle {
 
     @EventTarget
     public void onPacket(ServerPacketEvent e) {
-
         if (e.getPacket() instanceof GameMessageS2CPacket) {
             GameMessageS2CPacket eventPacket = (GameMessageS2CPacket) e.getPacket();
             Entity entity = (Entity) this.last;
@@ -140,12 +139,14 @@ public class FairyEsp implements IToggle {
         for (ItemStack itemStack : entity.getArmorItems()) {
             i++;
             if (i == 4) {
-                if (itemStack != null && itemStack.getNbt() != null) {
-                    if (itemStack.getNbt().toString().contains("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk2OTIzYWQyNDczMTAwMDdmNmFlNWQzMjZkODQ3YWQ1Mzg2NGNmMTZjMzU2NWExODFkYzhlNmIyMGJlMjM4NyJ9fX0=")) {
+                if(itemStack == null) continue;
+                if (itemStack != null && itemStack.getComponents() != null) {
+                    if (itemStack.getComponents().toString().contains("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYjk2OTIzYWQyNDczMTAwMDdmNmFlNWQzMjZkODQ3YWQ1Mzg2NGNmMTZjMzU2NWExODFkYzhlNmIyMGJlMjM4NyJ9fX0=")) {
                         if (this.valueHolder.value.getOrDefault(entity.getBlockPos().hashCode() + HypixelWay.getInstance().way(), false)) {
                             this.renderList.add(new BlockTarget(entity.getBlockPos().add(0, 2, 0), this.colorHolder1::geColor));
                         } else {
                             this.renderList.add(new BlockTarget(entity.getBlockPos().add(0, 2, 0), this.colorHolder::geColor));
+
                         }
                         return true;
                     }
@@ -157,24 +158,21 @@ public class FairyEsp implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-
-//        e.getMatrixStack().push();
-        RenderSystem.disableDepthTest();
-        RenderUtils.translateView(e.getMatrixStack());
+//
+////        e.getMatrixStack().push();
+//        RenderSystem.disableDepthTest();
+//        RenderUtils.translateView(e.getMatrixStack());
         HashSet<BlockTarget> render = new HashSet<>(renderList);
         LivingEntity player = SkyMatrix.mc.player;
         for (BlockTarget blockTarget : render) {
 
             assert player != null;
             double v = Math.sqrt(Math.pow(blockTarget.getPos().getX() - player.getX(), 2) + Math.pow(blockTarget.getPos().getZ() - player.getZ(), 2));
-            if (!(v <= range.maxValue().doubleValue() && v >= range.minValue().doubleValue())) {
-                continue;
-            }
             blockTarget.render(e.getMatrixStack(), e.getTickDelta());
         }
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
-//        e.getMatrixStack().pop();
+//        RenderSystem.disableBlend();
+//        RenderSystem.enableDepthTest();
+////        e.getMatrixStack().pop();
     }
 
     @Override

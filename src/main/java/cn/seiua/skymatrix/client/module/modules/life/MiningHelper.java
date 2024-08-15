@@ -19,13 +19,17 @@ import cn.seiua.skymatrix.event.events.GameMessageEvent;
 import cn.seiua.skymatrix.event.events.ServerPacketEvent;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
 import cn.seiua.skymatrix.gui.Icons;
+import cn.seiua.skymatrix.gui.Theme;
+import cn.seiua.skymatrix.render.BlockLocTarget;
 import cn.seiua.skymatrix.utils.*;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.item.ItemStack;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
 import net.minecraft.registry.tag.FluidTags;
+import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
@@ -37,9 +41,12 @@ import java.awt.*;
 import java.util.List;
 import java.util.*;
 
-@Event
-@Sign(sign = Signs.FREE)
-@SModule(name = "mininghelper", category = "life")
+import static cn.seiua.skymatrix.SkyMatrix.mc;
+
+@Deprecated
+//@Event
+//@Sign(sign = Signs.FREE)
+//@SModule(name = "mininghelper", category = "life")
 @SuppressWarnings("all")
 public class MiningHelper implements IToggle {
     @Value(name = "keyBind")
@@ -64,7 +71,7 @@ public class MiningHelper implements IToggle {
     public ArrayList<String> hold_block = new ArrayList<>();
 
     private List<BlockPos> blockPos;
-    private BlockPos target;
+    public BlockPos target;
     @Use
     Client client;
     private int holdTick = 0;
@@ -74,7 +81,7 @@ public class MiningHelper implements IToggle {
 
     public boolean isTarget(BlockPos bp) {
         String name1 = (SkyMatrix.mc.world.getBlockState(bp).getBlock().getName()).getString();
-        if (name1.contains("Grass")  || name1.contains("Leaves") || name1.contains("Wood") || name1.contains("Poppy") || name1.contains("Dandelion") || name1.contains("Azure") || name1.contains("Bluet")) {
+        if ( name1.contains("Grass")  || name1.contains("Leaves") || name1.contains("Wood") || name1.contains("Poppy") || name1.contains("Dandelion") || name1.contains("Azure") || name1.contains("Bluet")) {
             if (name1.equals("Grass Block")) return false;
             return true;
         }
@@ -88,9 +95,12 @@ public class MiningHelper implements IToggle {
                 return true;
             }
         }
-        if (hold_block.contains(name) && hold) {
-            return true;
+        for (String s : hold_block) {
+            if (name.contains(s)&&!(s.startsWith("!")&&hold_block.contains(s.replace("!","")))) {
+                return true;
+            }
         }
+
         return false;
     }
     int ct = 0;
@@ -101,7 +111,7 @@ public class MiningHelper implements IToggle {
         Packet packet = e.getPacket();
         if (packet instanceof ParticleS2CPacket) {
             ParticleS2CPacket p = (ParticleS2CPacket) packet;
-            String name = p.getParameters().asString();
+            String name = p.getParameters().toString();
             if (name.contains("minecraft:crit")) {
                 Vec3d d = new Vec3d(p.getX(), p.getY(), p.getZ());
                 chest = d;
@@ -120,6 +130,9 @@ public class MiningHelper implements IToggle {
     }
     @EventTarget
     public void onTick(ClientTickEvent e) {
+        if(target!=null){
+            Client.sendDebugMessage(Text.of(target.toString()));
+        }
         if (SkyMatrix.mc.crosshairTarget.getType().equals(HitResult.Type.BLOCK)) {
         }
         if (powder.isValue() && HypixelWay.getInstance().way().contains("Crystal")) {
@@ -135,8 +148,10 @@ public class MiningHelper implements IToggle {
                 return;
             }
         }
+
         if ((mouse.isValue() && SkyMatrix.mc.options.attackKey.isPressed()) || hold || !mouse.isValue()) {
             client.setKeepBlockBreaking(true);
+
             SkyMatrix.mc.options.attackKey.setPressed(true);
             ItemStack is = SkyMatrix.mc.player.getInventory().getMainHandStack();
             String type = SkyBlockUtils.getItemType(is);
@@ -173,7 +188,7 @@ public class MiningHelper implements IToggle {
                             vec3d = canSee(cp);
                             if (vec3d != null) {
                                 Vec3d vec3d1 = cp.toCenterPos().subtract(playerPos);
-                                double angle = SkyMatrix.mc.player.getPos().distanceTo(cp.toCenterPos());
+                                double angle = MathUtils.calculateAngle(vec3d.subtract(playerPos),viewPos);
                                 if (hold) {
                                     angle = MathUtils.calculateAngle(vec3d1, viewPos);
                                 }
@@ -195,7 +210,13 @@ public class MiningHelper implements IToggle {
                         }
                     }
                 }
+                if(target!=null)
+                if(MinecraftClient.getInstance().world.getBlockState(target).isAir()){
+                    target=null;
+                    return;
+                }
                 if (flag != 0) {
+
                     Vec3d vec3d1 = targetVec.multiply(targetVec.length());
                     if (!vec3d1.equals(holdVec)) {
                         holdTick = 0;
@@ -206,6 +227,7 @@ public class MiningHelper implements IToggle {
                             black.put(String.valueOf(Objects.hash(this.target.getX(), this.target.getY(), this.target.getZ())), 20);
                         }
                     }
+
                     smoothRotation.smoothLook(RotationUtils.toRotation(vec3d1), 2.4f, null, false || hold);
                 } else {
 
@@ -268,23 +290,25 @@ public class MiningHelper implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-        if (target == null) return;
-        HitResult hitResult = SkyMatrix.mc.crosshairTarget;
-        if (hitResult instanceof BlockHitResult) {
-            BlockHitResult blockHitResult = (BlockHitResult) hitResult;
-            if (!blockHitResult.getBlockPos().equals(target)) {
-                return;
-            }
-        }
-        RenderSystem.disableDepthTest();
-        RenderUtils.translateView(e.getMatrixStack());
-        RenderUtils.setColor(new Color(0, 255, 220, 20));
-        LivingEntity player = SkyMatrix.mc.player;
-        RenderUtils.translatePos(e.getMatrixStack(), target);
-        RenderUtils.drawSolidBox(new Box(0, 0, 0, 1, 1, 1), e.getMatrixStack());
-        e.getMatrixStack().pop();
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
+//        if (target == null) return;
+//        HitResult hitResult = SkyMatrix.mc.crosshairTarget;
+//        if (hitResult instanceof BlockHitResult) {
+//            BlockHitResult blockHitResult = (BlockHitResult) hitResult;
+//            if (!blockHitResult.getBlockPos().equals(target)) {
+//                return;
+//            }
+//
+//
+//        }
+//        RenderSystem.disableDepthTest();
+//        RenderUtils.translateView(e.getMatrixStack());
+//        RenderUtils.setColor(new Color(0, 255, 220, 20));
+//        LivingEntity player = SkyMatrix.mc.player;
+//        RenderUtils.translatePos(e.getMatrixStack(), target);
+//        RenderUtils.drawSolidBox(new Box(0, 0, 0, 1, 1, 1), e.getMatrixStack());
+//        e.getMatrixStack().pop();
+//        RenderSystem.disableBlend();
+//        RenderSystem.enableDepthTest();
 
     }
 

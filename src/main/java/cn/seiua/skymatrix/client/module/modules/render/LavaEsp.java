@@ -16,27 +16,26 @@ import cn.seiua.skymatrix.config.option.DoubleValueSlider;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.config.option.SingleChoice;
 import cn.seiua.skymatrix.event.EventTarget;
-import cn.seiua.skymatrix.event.events.ClientTickEvent;
-import cn.seiua.skymatrix.event.events.FluidRenderEvent;
-import cn.seiua.skymatrix.event.events.WorldChangeEvent;
-import cn.seiua.skymatrix.event.events.WorldRenderEvent;
+import cn.seiua.skymatrix.event.events.*;
 import cn.seiua.skymatrix.gui.Icons;
 import cn.seiua.skymatrix.render.BlockTarget;
 import cn.seiua.skymatrix.utils.ReflectUtils;
 import cn.seiua.skymatrix.utils.RenderUtils;
 import cn.seiua.skymatrix.utils.TickTimer;
 import com.mojang.blaze3d.systems.RenderSystem;
+import net.fabricmc.fabric.api.networking.v1.S2CPlayChannelEvents;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.fluid.FluidState;
 import net.minecraft.fluid.LavaFluid;
+import net.minecraft.network.packet.Packet;
 import net.minecraft.state.property.BooleanProperty;
 import net.minecraft.util.math.BlockPos;
+import org.apache.logging.log4j.spi.CopyOnWrite;
 
 import java.awt.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
+import java.util.*;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 @Event
 @Sign(sign = Signs.FREE)
@@ -67,49 +66,45 @@ public class LavaEsp implements IToggle {
         configManager.addReloadCallbacks(this::onConfig);
     }
 
-    private HashSet<BlockTarget> renderList = new HashSet<>();
+
+    private CopyOnWriteArrayList<BlockPos> renderList = new CopyOnWriteArrayList<>();
 
     public void onConfig() {
         if (SkyMatrix.mc.world != null) {
-            this.renderList = new HashSet<>();
             SkyMatrix.mc.worldRenderer.reload();
-
         }
     }
 
     @EventTarget
     public void onBlock(FluidRenderEvent e) {
-
         if (e.getFluidState().getFluid() instanceof LavaFluid) {
             FluidState fluidState = e.getFluidState();
-
-            if (!((Boolean) fluidState.getEntries().get(BooleanProperty.of("falling")))) {
                 BlockPos blockPos = e.getBlockPos();
+                if(!isTarget(blockPos)) return;
                 if (mode.selectedValue().equals("worm")) {
                     if (blockPos.getY() >= 64 && blockPos.getX() >= 513 && blockPos.getZ() >= 513) {
-                        renderList.add(new BlockTarget(blockPos, this.colorHolder::geColor));
+                        if(renderList.contains(blockPos.add(0,0,0))) return;
+                        renderList.add(blockPos.add(0,0,0));
                         return;
                     }
                 }
                 if (mode.selectedValue().equals("custom")) {
                     if (blockPos.getY() >= this.y.minValue().intValue() && blockPos.getY() <= this.y.maxValue().intValue()) {
-                        renderList.add(new BlockTarget(blockPos, this.colorHolder::geColor));
+                        if(renderList.contains(blockPos.add(0,0,0))) return;
+                        renderList.add(blockPos.add(0,0,0));
                         return;
                     }
                 }
-
-            }
         }
         tickTimer.reset();
 
     }
 
     private void clear() {
-        List<BlockTarget> temp = new ArrayList<>(renderList);
-        for (BlockTarget target : temp) {
+        for (BlockPos target : renderList) {
             if (target == null) continue;
             assert SkyMatrix.mc.world != null;
-            if (!(SkyMatrix.mc.world.getFluidState(target.getPos()).getFluid() instanceof LavaFluid)) {
+            if (!(SkyMatrix.mc.world.getFluidState(target).getFluid() instanceof LavaFluid)) {
                 renderList.remove(target);
             }
         }
@@ -121,15 +116,15 @@ public class LavaEsp implements IToggle {
         if (tickTimer != null) {
             tickTimer.update();
         }
+
     }
 
     @EventTarget
     public void onWorldChange(WorldChangeEvent e) {
-        this.renderList = new HashSet<>();
+        this.renderList.clear();
     }
 
     public boolean isTarget(BlockPos blockPos) {
-
         assert SkyMatrix.mc.world != null;
         return SkyMatrix.mc.world.getBlockState(blockPos).toString().contains(":lava");
     }
@@ -137,22 +132,16 @@ public class LavaEsp implements IToggle {
     @EventTarget
     public void onRender(WorldRenderEvent e) {
         if (tempDisable) return;
-//        e.getMatrixStack().push();
-        RenderSystem.disableDepthTest();
-        RenderUtils.translateView(e.getMatrixStack());
-        HashSet<BlockTarget> render = new HashSet<>(renderList);
         LivingEntity player = SkyMatrix.mc.player;
-        for (BlockTarget blockTarget : render) {
-
+        for (BlockPos blockPos : renderList) {
             assert player != null;
-            double v = Math.sqrt(Math.pow(blockTarget.getPos().getX() - player.getX(), 2) + Math.pow(blockTarget.getPos().getZ() - player.getZ(), 2));
+            double v = Math.sqrt(Math.pow(blockPos.getX() - player.getX(), 2) + Math.pow(blockPos.getZ() - player.getZ(), 2));
             if (!(v <= range.maxValue().doubleValue() && v >= range.minValue().doubleValue())) {
                 continue;
             }
-            blockTarget.render(e.getMatrixStack(), e.getTickDelta());
+            new BlockTarget(blockPos, colorHolder::geColor).render(e.getMatrixStack(), e.getTickDelta());
         }
-        RenderSystem.disableBlend();
-        RenderSystem.enableDepthTest();
+
 //        e.getMatrixStack().pop();
     }
 
@@ -164,6 +153,6 @@ public class LavaEsp implements IToggle {
     @Override
     public void enable() {
         SkyMatrix.mc.worldRenderer.reload();
-        this.renderList = new HashSet<>();
+        this.renderList.clear();
     }
 }

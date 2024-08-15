@@ -97,10 +97,21 @@ public class ModuleManager {
         }
         return valueHolder.value.get(moduleName);
     }
-
+    public void enable(Class c) {
+        SModule sModule = (SModule) c.getAnnotation(SModule.class);
+        String name = this.getModuleName(sModule);
+        if (!this.isEnable(name)) {
+            this.toggle(name);
+        }
+    }
+    public void enable(Object c) {
+        enable(c.getClass());
+    }
     public void disable(Object c) {
         disable(c.getClass());
     }
+
+
 
     public void disable(Class c) {
         SModule sModule = (SModule) c.getAnnotation(SModule.class);
@@ -109,7 +120,6 @@ public class ModuleManager {
             this.toggle(name);
         }
     }
-
     public void toggle(String moduleName) {
         Object o = this.modules.get(moduleName).getTarget();
         boolean flag = false;

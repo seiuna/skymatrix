@@ -57,7 +57,24 @@ public interface Selector {
     }
 
     String select();
+    static String royal_Pigeon() {
+        int i = 0;
+        for (ItemStack itemStack : SkyMatrix.mc.player.getInventory().main) {
+            if (i == 9) {
+                break;
+            }
+            if (itemStack.getName().getString().contains("Royal Pigeon")) {
+//            if (itemStack.getName().getString().contains("Jungle")) {
+                if (Filter.royal_Pigeon(itemStack)) {
+                    String uuid = SkyBlockUtils.getItemUuid(itemStack);
+                    return uuid;
+                }
+            }
+            i++;
+        }
+        return null;
 
+    }
     static String bestAote() {
         int i = 0;
         for (ItemStack itemStack : SkyMatrix.mc.player.getInventory().main) {

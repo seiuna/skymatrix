@@ -64,7 +64,6 @@ public abstract class Event {
 
         if (dataList != null) {
             for (final Data data : dataList) {
-
                 try {
                     data.target.invoke(data.source, event);
                 } catch (Exception e) {

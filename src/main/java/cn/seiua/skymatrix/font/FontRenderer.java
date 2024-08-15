@@ -224,7 +224,6 @@ public class FontRenderer {
                 this.setColor(this.colors.get(index));
                 index++;
             }
-
         }
         for (char c : text.toCharArray()) {
             if (c == '§') {
@@ -234,7 +233,6 @@ public class FontRenderer {
                         index++;
                     }
                 }
-
                 continue;
             }
             CharInfo charInfo = getCharImg(c);
@@ -262,8 +260,7 @@ public class FontRenderer {
         float tx = x;
         float ty = y;
         if (centeredH) y -= getStringHeight() / 2;
-
-        GlStateManager._enableBlend();
+        RenderSystem.enableBlend();
         RenderSystem.setShaderTexture(0, charInfo.getGlid());
         RenderSystem.enableCull();
         RenderSystem.setShaderColor(color.getRed() / 255f, color.getGreen() / 255f, color.getBlue() / 255f, color.getAlpha() / 255f);
@@ -271,7 +268,6 @@ public class FontRenderer {
         GlStateManager._blendFunc(GL11.GL_SRC_ALPHA, GL11.GL_ONE_MINUS_SRC_ALPHA);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MIN_FILTER, GlConst.GL_LINEAR);
         RenderSystem.texParameter(GlConst.GL_TEXTURE_2D, GlConst.GL_TEXTURE_MAG_FILTER, GlConst.GL_LINEAR);
-
         drawTexture(charInfo.getIdentifier(), x, y, z, 0, 0, (charInfo.getWidth()), (charInfo.getHeight()), (charInfo.getWidth()), (charInfo.getHeight()), matrixStack);
         GlStateManager._disableBlend();
         RenderSystem.setShaderColor(1, 1, 1, 1);
@@ -293,12 +289,11 @@ public class FontRenderer {
         RenderSystem.setShaderTexture(0, texture);
         RenderSystem.setShader(GameRenderer::getPositionTexProgram);
         Matrix4f matrix4f = matrixStack.peek().getPositionMatrix();
-        BufferBuilder bufferBuilder = Tessellator.getInstance().getBuffer();
-        bufferBuilder.begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
-        bufferBuilder.vertex(matrix4f, (float) x1, (float) y1, (float) z).texture(u1, v1).next();
-        bufferBuilder.vertex(matrix4f, (float) x1, (float) y2, (float) z).texture(u1, v2).next();
-        bufferBuilder.vertex(matrix4f, (float) x2, (float) y2, (float) z).texture(u2, v2).next();
-        bufferBuilder.vertex(matrix4f, (float) x2, (float) y1, (float) z).texture(u2, v1).next();
+        BufferBuilder bufferBuilder = Tessellator.getInstance().begin(VertexFormat.DrawMode.QUADS, VertexFormats.POSITION_TEXTURE);
+        bufferBuilder.vertex(matrix4f, (float) x1, (float) y1, (float) z).texture(u1, v1);
+        bufferBuilder.vertex(matrix4f, (float) x1, (float) y2, (float) z).texture(u1, v2);
+        bufferBuilder.vertex(matrix4f, (float) x2, (float) y2, (float) z).texture(u2, v2);
+        bufferBuilder.vertex(matrix4f, (float) x2, (float) y1, (float) z).texture(u2, v1);
         BufferRenderer.drawWithGlobalProgram(bufferBuilder.end());
     }
 
@@ -332,6 +327,7 @@ public class FontRenderer {
      * @return Width
      */
     public int getStringWidth(@NotNull String str) {
+        str=str.replace("§","");
         int retv = 0;
         for (char c : str.toCharArray()) {
             if (c == '§') continue;

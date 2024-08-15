@@ -11,7 +11,7 @@ public class FontUtils {
 
 
     public static FontRenderer getFontRenderer(String fontname, int fontstyle, int size) {
-        Identifier identifier = new Identifier(SkyMatrix.MODID, "font/" + fontname);
+        Identifier identifier = Identifier.of(SkyMatrix.MODID, "font/" + fontname);
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.getResourceManager() != null) {
             Font font = null;

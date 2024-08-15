@@ -302,13 +302,13 @@ public class ClickGui extends Screen {
 
     @Override
     public void render(DrawContext context, int mouseX, int mouseY, float delta) {
-
-        float ms = UI.getS();
-        mouseY = (int) (mouseY * ms);
-        mouseX = (int) (mouseX * ms);
-        int height = (int) (this.height * ms);
-        int width = (int) (this.width * ms);
-        context.getMatrices().scale(1f / UI.getS(), 1f / UI.getS(), 1f / UI.getS());
+        try {
+            float ms = UI.getS();
+            mouseY = (int) (mouseY * ms);
+            mouseX = (int) (mouseX * ms);
+            int height = (int) (this.height * ms);
+            int width = (int) (this.width * ms);
+            context.getMatrices().scale(1f / UI.getS(), 1f / UI.getS(), 1f / UI.getS());
 
 
 //        Optional<ModContainer> optional = FabricLoader.getInstance().getModContainer("skymatrix");
@@ -329,64 +329,62 @@ public class ClickGui extends Screen {
 //        }
 
 
-        drawMask(context.getMatrices());
-        int ap = 0;
-        for (UI ui : uiList) {
-            ui.update(36 + ap, height - 36);
-            ui.render(context, mouseX, mouseY, delta);
-            ap += ui.getWidth() + 6;
-        }
-
-        UIModules l = modules.get(this.last.getValue());
-
-        for (UIModules ui : modules.values()) {
-
-            if (!ui.getID().equals(this.last.getValue())) {
-
-
-                int uih = ui.getMaskHeight() + ui.getHeight();
-                RenderUtils.drawMask(context.getMatrices(), new Box(ui.getX() - ui.getWidth() / 2, ui.getY() - ui.getHeight() / 2, 1, ui.getX() - ui.getWidth() / 2 + 250, ui.getY() - ui.getHeight() / 2 + uih, 1));
-
+            drawMask(context.getMatrices());
+            int ap = 0;
+            for (UI ui : uiList) {
+                ui.update(36 + ap, height - 36);
                 ui.render(context, mouseX, mouseY, delta);
+                ap += ui.getWidth() + 6;
+            }
+
+            UIModules l = modules.get(this.last.getValue());
+
+            for (UIModules ui : modules.values()) {
+                if (!ui.getID().equals(this.last.getValue())) {
+                    int uih = ui.getMaskHeight() + ui.getHeight();
+                    RenderUtils.drawMask(context.getMatrices(), new Box(ui.getX() - ui.getWidth() / 2, ui.getY() - ui.getHeight() / 2, 1, ui.getX() - ui.getWidth() / 2 + 250, ui.getY() - ui.getHeight() / 2 + uih, 1));
+                    ui.render(context, mouseX, mouseY, delta);
+                    RenderUtils.clearMask();
+                }
+
+            }
+            if (l != null) {
+                int uih = l.getMaskHeight() + l.getHeight();
+                RenderUtils.drawMask(context.getMatrices(), new Box(l.getX() - l.getWidth() / 2, l.getY() - l.getHeight() / 2, 1, l.getX() - l.getWidth() / 2 + 250, l.getY() - l.getHeight() / 2 + uih, 1));
+                l.render(context, mouseX, mouseY, delta);
                 RenderUtils.clearMask();
             }
 
+            if (focus != null) {
+                context.fillGradient(0, 0, width, height, -1072689136, -804253680);
+                focus.render(context, mouseX, mouseY, delta);
+            } else {
 
-        }
-        if (l != null) {
-            int uih = l.getMaskHeight() + l.getHeight();
-            RenderUtils.drawMask(context.getMatrices(), new Box(l.getX() - l.getWidth() / 2, l.getY() - l.getHeight() / 2, 1, l.getX() - l.getWidth() / 2 + 250, l.getY() - l.getHeight() / 2 + uih, 1));
-            l.render(context, mouseX, mouseY, delta);
-            RenderUtils.clearMask();
-        }
+                if (drawDetial != null) {
+                    drawDetial.run(context, mouseX, mouseY, delta);
+                    drawDetial = null;
+                }
 
-        if (focus != null) {
-            context.fillGradient(0, 0, width, height, -1072689136, -804253680);
-            focus.render(context, mouseX, mouseY, delta);
-        } else {
-
-            if (drawDetial != null) {
-                drawDetial.run(context, mouseX, mouseY, delta);
-                drawDetial = null;
+            }
+            if (focus != null) {
+                if (UIModules.flag > 0) {
+                    long id = GLFW.glfwCreateStandardCursor(GLFW.GLFW_RESIZE_ALL_CURSOR);
+                    GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), id);
+                }
+                if (UIValueInput.flag > 0) {
+                    long id = GLFW.glfwCreateStandardCursor(GLFW.GLFW_IBEAM_CURSOR);
+                    GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), id);
+                }
+                if (UIValueInput.flag + UIModules.flag <= 0) {
+                    GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), 0);
+                }
+                UIModules.flag = 0;
+                UIValueInput.flag = 0;
             }
 
+        }catch (Exception e){
+            e.printStackTrace();
         }
-        if (focus != null) {
-            if (UIModules.flag > 0) {
-                long id = GLFW.glfwCreateStandardCursor(GLFW.GLFW_RESIZE_ALL_CURSOR);
-                GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), id);
-            }
-            if (UIValueInput.flag > 0) {
-                long id = GLFW.glfwCreateStandardCursor(GLFW.GLFW_IBEAM_CURSOR);
-                GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), id);
-            }
-            if (UIValueInput.flag + UIModules.flag <= 0) {
-                GLFW.glfwSetCursor(SkyMatrix.mc.getWindow().getHandle(), 0);
-            }
-            UIModules.flag = 0;
-            UIValueInput.flag = 0;
-        }
-
     }
 
     @Override

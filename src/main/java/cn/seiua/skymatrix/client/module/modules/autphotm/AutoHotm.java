@@ -9,7 +9,7 @@ import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
-import cn.seiua.skymatrix.client.module.modules.life.MiningHelper;
+import cn.seiua.skymatrix.client.module.modules.life.MiningHelperV2;
 import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
@@ -28,6 +28,8 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
+import net.minecraft.block.Block;
+import net.minecraft.block.StainedGlassBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.PlayerListEntry;
@@ -111,8 +113,11 @@ public class AutoHotm implements IToggle, Hud {
     @Value(name = "weapon", desc = "你的武器")
     @Sign(sign = Signs.BETA)
     SkyblockItemSelect weapon = new SkyblockItemSelect("", false, null, Filter::weaponFilter);
+    @Value(name = "royal_pigeon", desc = "你的武器")
+    @Sign(sign = Signs.BETA)
+    SkyblockItemSelect royal = new SkyblockItemSelect("", false, Selector::royal_Pigeon, Filter::royal_Pigeon);
     @Use
-    MiningHelper miningHelper;
+    MiningHelperV2 miningHelper;
     TickTimer cd = TickTimer.build(20, this::tp);
     TickTimer reset = TickTimer.build(10, this::reset);
     private Message message= MessageBuilder.build("AutoHotm");
@@ -396,10 +401,12 @@ public class AutoHotm implements IToggle, Hud {
                             }
 
                             task1 = "mining";
-                            this.miningHelper.hold_block.clear();
-                            this.miningHelper.hold_block.addAll(titanium());
-                            this.miningHelper.hold_block.addAll(shit_mithril());
-                            this.miningHelper.hold_block.addAll(good_mithril());
+                            miningHelper.targets.clear();
+                            this.miningHelper.targets.add("Prismarine");
+                            this.miningHelper.targets.add("Light Blue Wool");
+                            this.miningHelper.targets.add("Polished Diorite");
+                            this.miningHelper.targets.add("Cyan Terracotta");
+
                         }
                     }
                     if (this.op_slayer.isValue()) {
@@ -461,21 +468,22 @@ public class AutoHotm implements IToggle, Hud {
         }
         Node last = null;
         for (Node node : nodes) {
-            RenderUtils.translateView(e.getMatrixStack());
-            RenderSystem.disableDepthTest();
             BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
             blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
             if (last != null) {
-                RenderUtils.setColor(Theme.getInstance().THEME_UI_SELECTED.geColor());
-                RenderUtils.drawLine(e.getMatrixStack(), last.toBlockPos(), node.toBlockPos());
+                RenderUtilsV2.renderLine(e.getMatrixStack(), last.toBlockPos(), node.toBlockPos(),Theme.getInstance().THEME_UI_SELECTED.geColor(),2f);
             }
             last = node;
-            RenderSystem.enableDepthTest();
         }
     }
 
     private void doPathing() {
 
+        if(task.equals("submit")&& !Objects.equals(royal.getUuid(), "")&&royal.getUuid()!=null){
+            arrived=true;
+            status="doing";
+            return;
+        }
         if (step < nodes.size()) {
             this.aotv.switchTo();
             Vec3d bp = nodes.get(step).toBlockPos().toCenterPos().add(0, 0.5, 0);
@@ -566,7 +574,6 @@ public class AutoHotm implements IToggle, Hud {
             status = "none";
             step = 0;
             arrived = false;
-            miningHelper.hold = true;
             this.tick = 0;
             this.moveTick = 0;
             this.cTick = 0;
@@ -601,9 +608,9 @@ public class AutoHotm implements IToggle, Hud {
 
             update();
         } else {
-            if (ModuleManager.instance.isEnable("life.mininghelper")) {
-                ModuleManager.instance.toggle("life.mininghelper");
-            }
+
+                ModuleManager.instance.disable(miningHelper);
+
         }
 
     }
@@ -612,15 +619,16 @@ public class AutoHotm implements IToggle, Hud {
     public void disable() {
         SkyMatrix.mc.mouse.lockCursor();
         reset();
-        if (ModuleManager.instance.isEnable("life.mininghelper")) {
-            ModuleManager.instance.toggle("life.mininghelper");
-        }
-        miningHelper.hold = false;
+        miningHelper.targets.clear();
+        miningHelper.clearFilter();
+        ModuleManager.instance.disable(miningHelper);
+        miningHelper.rclient=false;
 
     }
 
     private void update() {
         if (this.task.equals("submit")) {
+
             if (mc.currentScreen instanceof HandledScreen<?>) {
                 HandledScreen<?> screen = (HandledScreen<?>) mc.currentScreen;
                 Client.sendDebugMessage(Text.of(screen.getTitle().getString()));
@@ -644,7 +652,16 @@ public class AutoHotm implements IToggle, Hud {
             }
             if (arrived) {
                 cTick++;
-                this.tool.switchTo();
+
+                if(!Objects.equals(royal.getUuid(), "")&&royal.getUuid()!=null){
+                    this.royal.switchTo();
+                    if (cTick % 20 == 0) {
+                        this.rotationReady();
+                    }
+                    return;
+                }else {
+                    this.tool.switchTo();
+                }
                 if (!rotationFaker.smoothRotation.running) {
                     if (mc.currentScreen == null) {
                         if (cTick % 20 == 0) {
@@ -660,9 +677,7 @@ public class AutoHotm implements IToggle, Hud {
         if (this.task.equals("mining")) {
             mc.options.useKey.setPressed(false);
             this.tool.switchTo();
-            if (!ModuleManager.instance.isEnable("life.mininghelper")) {
-                ModuleManager.instance.toggle("life.mininghelper");
-            }
+                ModuleManager.instance.enable(miningHelper);
             if (this.ability.isValue() && moveTick % (20 * 30) == 0) {
                 assert mc.interactionManager != null;
                 assert mc.player != null;
@@ -701,7 +716,7 @@ public class AutoHotm implements IToggle, Hud {
             mc.options.sneakKey.setPressed(true);
             moveTick++;
             this.reset.update();
-            if (moveTick % 90 == 0) {
+            if (moveTick % 200 == 0) {
                 if (new Random().nextBoolean()) mc.options.forwardKey.setPressed(true);
                 if (new Random().nextBoolean()&&new Random().nextBoolean()&&new Random().nextBoolean()) mc.options.backKey.setPressed(true);
                 if (new Random().nextBoolean()) mc.options.leftKey.setPressed(true);
@@ -710,6 +725,16 @@ public class AutoHotm implements IToggle, Hud {
             }
         }
 
+    }
+    private boolean filterP(BlockPos blockPos){
+
+        return true;
+    }
+
+    private boolean filterB(Block block){
+        String name = block.getName().toString();
+        if(name.contains("polished_diorite")||name.contains("light_blue_wool")||name.contains("cyan_terracotta")||name.contains("prismarine'")||name.contains("prismarine_bricks"))
+            return true;else return false;
     }
 
     @Override
@@ -720,10 +745,13 @@ public class AutoHotm implements IToggle, Hud {
         if (nodes == null) {
             nodes = new ArrayList<>();
         }
+        miningHelper.targets.add("x1x11x1");
+        miningHelper.addFilter(this::filterB);
+        miningHelper.rclient=true;
+        miningHelper.addFilter(this::filterP);
         status = "none";
         step = 0;
         arrived = false;
-        miningHelper.hold = true;
         this.tick = 0;
         this.moveTick = 0;
         this.cTick = 0;

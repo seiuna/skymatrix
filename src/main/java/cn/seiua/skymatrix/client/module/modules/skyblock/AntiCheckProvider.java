@@ -39,7 +39,7 @@ public class AntiCheckProvider {
                 boolean bl3 = packet.getFlags().contains((Object) PositionFlag.Z);
                 if ((!bl) || (!bl2) || (!bl3)) {
                     new ServerRotationEvent("Location").call();
-                    Client.sendMessage(Text.of("rotation"));
+//                    Client.sendMessage(Text.of("rotation"));
 
                 }
             }
@@ -59,7 +59,7 @@ public class AntiCheckProvider {
                             double cc = distance - this.players_ds.get(uuid);
                             if (cc < 0) {
                                 new PlayerCloseEvent(distance, cc).call();
-                                Client.sendMessage(Text.of("closing   " + entity.getName().getString() + "     " + (float) cc * 10 + "  " + (float) distance));
+                                Client.sendDebugMessage(Text.of("closing   " + entity.getName().getString() + "     " + (float) cc * 10 + "  " + (float) distance));
                             }
                             this.players_ds.put(uuid, distance);
                         } else {
@@ -73,7 +73,7 @@ public class AntiCheckProvider {
                                 flag = true;
                                 if (players.get(entity.getUuid().toString()) > 60) {
                                     new LookLockEvent(entity, 0, entity.canSee(SkyMatrix.mc.player), false).call();
-                                    Client.sendMessage(Text.of("look   " + entity.getName().getString()));
+                                    Client.sendDebugMessage(Text.of("look   " + entity.getName().getString()));
                                 }
                                 break;
                             } else {
@@ -87,7 +87,7 @@ public class AntiCheckProvider {
                                     players.put(entity.getUuid().toString(), players.get(entity.getUuid().toString()) - 2);
 
                                 } else {
-                                    Client.sendMessage(Text.of("look free " + entity.getName().getString()));
+                                    Client.sendDebugMessage(Text.of("look free " + entity.getName().getString()));
                                     players.remove(entity.getUuid().toString());
                                     new LookLockEvent(entity, 0, entity.canSee(SkyMatrix.mc.player), true).call();
                                 }

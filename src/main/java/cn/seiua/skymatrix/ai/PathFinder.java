@@ -123,24 +123,24 @@ public class PathFinder {
     @EventTarget
     public void onRender(WorldRenderEvent e) {
         if (this.openSet != null) {
-            RenderSystem.disableDepthTest();
-            ClickGui.fontRenderer28.setColor(Theme.getInstance().THEME.geColor());
-            ClickGui.fontRenderer28.centeredH();
-            ClickGui.fontRenderer28.centeredV();
-            RenderUtils.translateView(e.getMatrixStack());
-            RenderUtils.setColor(new Color(74, 235, 241, 199));
-            HashSet<Node> render = new HashSet<>(openSet);
-            LivingEntity player = SkyMatrix.mc.player;
-            for (Node node : render) {
-
-                RenderUtils.translatePos(e.getMatrixStack(), new BlockPos(node.x, node.y, node.z));
-
-                RenderUtils.drawSolidBox(new Box(0, 0, 0, 1, 1, 1), e.getMatrixStack());
-                e.getMatrixStack().pop();
-
-            }
-            RenderSystem.disableBlend();
-            RenderSystem.enableDepthTest();
+//            RenderSystem.disableDepthTest();
+//            ClickGui.fontRenderer28.setColor(Theme.getInstance().THEME.geColor());
+//            ClickGui.fontRenderer28.centeredH();
+//            ClickGui.fontRenderer28.centeredV();
+//            RenderUtils.translateView(e.getMatrixStack());
+//            RenderUtils.setColor(new Color(74, 235, 241, 199));
+//            HashSet<Node> render = new HashSet<>(openSet);
+//            LivingEntity player = SkyMatrix.mc.player;
+//            for (Node node : render) {
+//
+//                RenderUtils.translatePos(e.getMatrixStack(), new BlockPos(node.x, node.y, node.z));
+//
+//                RenderUtils.drawSolidBox(new Box(0, 0, 0, 1, 1, 1), e.getMatrixStack());
+//                e.getMatrixStack().pop();
+//
+//            }
+//            RenderSystem.disableBlend();
+//            RenderSystem.enableDepthTest();
         }
 
 

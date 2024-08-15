@@ -50,10 +50,10 @@ public class ChestAura implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-        for (RenderTarget renderTarget :
-                chests) {
-            renderTarget.render(e.getMatrixStack(), e.getTickDelta());
-        }
+//        for (RenderTarget renderTarget :
+//                chests) {
+//            renderTarget.render(e.getMatrixStack(), e.getTickDelta());
+//        }
 
     }
 

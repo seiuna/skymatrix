@@ -19,10 +19,13 @@ import cn.seiua.skymatrix.gui.ClickGui;
 import cn.seiua.skymatrix.utils.MathUtils;
 import cn.seiua.skymatrix.utils.ReflectUtils;
 import cn.seiua.skymatrix.utils.RenderUtils;
+import cn.seiua.skymatrix.utils.RenderUtilsV2;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.util.math.MathHelper;
+import net.minecraft.util.math.Vec3d;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -73,7 +76,7 @@ public class NameTag {
     public void onRender(WorldRenderEvent e) {
 
 
-        RenderUtils.translateView(e.getMatrixStack());
+//        RenderUtils.translateView(e.getMatrixStack());
         for (Entity entity : SkyMatrix.mc.world.getEntities()) {
             if (entity instanceof LivingEntity) {
                 LivingEntity entity1 = (LivingEntity) entity;
@@ -84,45 +87,35 @@ public class NameTag {
                     if (!self.isValue()) {
                         if (entity.equals(SkyMatrix.mc.player)) continue;
                     }
-                    e.getMatrixStack().push();
                     int i = 1;
                     if (SkyMatrix.mc.options.getPerspective().isFrontView()) {
                         i = -1;
                     }
                     double angle = MathUtils.calculateAngle(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(i), entity1.getPos().subtract(SkyMatrix.mc.gameRenderer.getCamera().getPos()));
                     if (angle > 90) continue;
-                    RenderSystem.disableDepthTest();
-                    RenderSystem.enableBlend();
+
                     float scale = 0.008F;
-                    RenderUtils.translatePos(e.getMatrixStack(), entity1.getCameraPosVec(e.getTickDelta()).add(0, 0.6, 0));
                     double distance = SkyMatrix.mc.player.getCameraPosVec(e.getTickDelta()).distanceTo(entity1.getCameraPosVec(e.getTickDelta()));
-                    if (distance > 10)
-                        scale *= distance / 10;
-                    e.getMatrixStack().multiply(SkyMatrix.mc.getEntityRenderDispatcher().getRotation());
-                    e.getMatrixStack().scale(-scale, -scale, scale);
-//            RenderUtils.drawSolidBox(new Box(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5), e.getMatrixStack());
                     Color color = this.nameColor.geColor();
                     ClickGui.fontRenderer24.setColors(entity1.isSneaking() ? color.darker() : color, new Color(255, 89, 51, 255), new Color(169, 169, 169, 255));
-                    ClickGui.fontRenderer24.centeredV();
-                    ClickGui.fontRenderer24.centeredH();
-                    ClickGui.fontRenderer24.setColor(new Color(0, 255, 220, 255));
                     String text = entity1.getDisplayName().getString();
-                    if (this.health.isValue()) {
+                                        if (this.health.isValue()) {
                         text += "§[" + entity1.getHealth() + "]";
                     }
                     if (this.distance.isValue()) {
                         text += "§[" + (int) distance + "]";
                     }
-                    ClickGui.fontRenderer24.drawString(e.getMatrixStack(), 0, 0, 0, text);
 
-                    ClickGui.fontRenderer24.resetCenteredH();
-                    ClickGui.fontRenderer24.resetCenteredH();
-                    e.getMatrixStack().pop();
+                    Vec3d vec3d=new Vec3d(
+                            MathHelper.lerp((double)e.getTickDelta(), entity.lastRenderX, entity.getX()),
+                            MathHelper.lerp((double)e.getTickDelta(), entity.lastRenderY, entity.getY())+2.2,
+                            MathHelper.lerp((double)e.getTickDelta(), entity.lastRenderZ, entity.getZ())
 
+                    );
+                    RenderUtilsV2.renderText(e.getMatrixStack(), ClickGui.fontRenderer24,text,vec3d , new Color(1,1,1,255),e.getTickDelta());
                 }
             }
-            RenderSystem.disableBlend();
-            RenderSystem.enableDepthTest();
+
 
 
         }

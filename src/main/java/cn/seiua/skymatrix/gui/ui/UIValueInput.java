@@ -59,14 +59,11 @@ public class UIValueInput extends UI {
         if (ClickGui.instance.getFocus() == this) {
 
 
-            if (SharedConstants.isValidChar(chr)) {
+
                 ValueInput valueInput = this.optionInfo.getTarget();
                 valueInput.setValue(valueInput.getValue() + chr);
 
-                return true;
-            } else {
-                return false;
-            }
+
         }
         return
                 false;

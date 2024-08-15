@@ -57,7 +57,7 @@ import java.util.*;
 
 @Event
 @Sign(sign = Signs.BETA)
-@SModule(name = "newfarmingHelper", category = "life", disable = true)
+@SModule(name = "farmingHelper", category = "life", disable = true)
 public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWaveCallBack {
 
     @Use
@@ -474,7 +474,7 @@ public class NewFarmingHelper implements IToggle, Hud, PreCheck, BanInfo.BanWave
             return;
         }
         if (event.getOld().isAir() && !event.getNe().isAir()) {
-            if (!event.getNe().canPathfindThrough(SkyMatrix.mc.world, event.getPos(), NavigationType.LAND)) {
+            if (!event.getNe().canPathfindThrough( NavigationType.LAND)) {
                 String name = BlockUtils.getName(event.getNe().getBlock()).replace("minecraft:", "");
                 name = SkyBlockUtils.getNameByMapper(name);
                 if (!this.blocks.value.containsKey(name)) {

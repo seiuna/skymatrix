@@ -1,6 +1,7 @@
 package cn.seiua.skymatrix.client.module.modules.render;
 
 import cn.seiua.skymatrix.SkyMatrix;
+import cn.seiua.skymatrix.client.Client;
 import cn.seiua.skymatrix.client.ConfigManager;
 import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.component.Event;
@@ -85,7 +86,6 @@ public class Test implements IToggle {
 
     @EventTarget
     public void onTick(ClientTickEvent e) {
-
     }
 
     @EventTarget
@@ -100,31 +100,34 @@ public class Test implements IToggle {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-        RenderUtils.translateView(e.getMatrixStack());
-        RenderSystem.disableDepthTest();
-        e.getMatrixStack().push();
-        BlockPos blockPos1 = new BlockPos(-14, -50, 22);
-        BlockPos blockPos2 = new BlockPos(-10, -50, 32);
-        BlockLocTarget blockLocTarget = new BlockLocTarget(blockPos1, this.colorHolder::geColor);
-        blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-        blockLocTarget = new BlockLocTarget(blockPos2, this.colorHolder::geColor);
-        blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-
-
-        RenderUtils.drawLine(e.getMatrixStack(), blockPos2, blockPos1);
-        e.getMatrixStack().pop();
-
-        RenderSystem.enableDepthTest();
+//        RenderUtils.translateView(e.getMatrixStack());
+//        RenderSystem.disableDepthTest();
+//        e.getMatrixStack().push();
+//        BlockPos blockPos1 = new BlockPos(-14, -50, 22);
+//        BlockPos blockPos2 = new BlockPos(-10, -50, 32);
+//        BlockLocTarget blockLocTarget = new BlockLocTarget(blockPos1, this.colorHolder::geColor);
+//        blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+//        blockLocTarget = new BlockLocTarget(blockPos2, this.colorHolder::geColor);
+//        blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+//
+//
+//        RenderUtils.drawLine(e.getMatrixStack(), blockPos2, blockPos1);
+//        e.getMatrixStack().pop();
+//
+//        RenderSystem.enableDepthTest();
 
     }
 
     @Override
     public void disable() {
+        Client.instance.setKeepBlockBreaking(false);
+
         this.renderList = null;
     }
 
     @Override
     public void enable() {
+        Client.instance.setKeepBlockBreaking(true);
         SkyMatrix.mc.worldRenderer.reload();
         this.renderList = new HashSet<>();
     }

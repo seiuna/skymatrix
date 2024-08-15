@@ -1,5 +1,8 @@
 package cn.seiua.skymatrix.utils;
 
+import cn.seiua.skymatrix.client.HypixelWay;
+import com.mojang.serialization.MapDecoder;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NbtElement;
 import net.minecraft.nbt.NbtList;
@@ -10,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-import static net.minecraft.item.ItemStack.LORE_KEY;
+
 
 public class SkyBlockUtils {
     private final static HashMap<String, String> oreMapper = new HashMap<>();
@@ -170,30 +173,35 @@ public class SkyBlockUtils {
     }
 
     private static String get(ItemStack itemStack, String key) {
-        if (itemStack.getNbt() == null) return "none";
-        if (itemStack.getNbt().getCompound("ExtraAttributes") == null) return "none";
-        if (itemStack.getNbt().getCompound("ExtraAttributes").get(key) == null) return "none";
-        return Objects.requireNonNull(itemStack.getNbt().getCompound("ExtraAttributes").get(key)).asString();
+//        if (itemStack.getNbt() == null) return "none";
+//        if (itemStack.getNbt().getCompound("ExtraAttributes") == null) return "none";
+try {
+    if (itemStack.get(DataComponentTypes.CUSTOM_DATA).getNbt().get(key) == null) return "none";
+
+    return Objects.requireNonNull(itemStack.get(DataComponentTypes.CUSTOM_DATA).getNbt().get(key).asString());
+}catch (Exception e){
+    return "none";
+}
     }
 
     public static String getRodType(ItemStack itemStack) {
-        if (itemStack.getNbt() == null) return null;
-        if (itemStack.getNbt().toString().contains("Lava Rod")) {
+//        if (itemStack.getNbt() == null) return null;
+        if (itemStack.getComponents().toString().contains("Lava Rod")) {
             return "LAVA";
 
         } else {
             return "WATER";
         }
+
     }
 
 
+
     public static String getItemType(ItemStack itemStack) {
-        if (itemStack.getNbt() == null) return null;
-        NbtList nbtList = itemStack.getNbt().getCompound("display").getList(LORE_KEY, NbtElement.STRING_TYPE);
-        String target = nbtList.getString(nbtList.size() - 1);
-        MutableText mutableText2 = Text.Serialization.fromJson(target);
-        if (mutableText2 == null) return null;
-        target = mutableText2.getString();
+        if(     !HypixelWay.getInstance().isSkyblock())return null;
+    
+        String target = itemStack.getComponents().toString();
+
         if (target.contains("BOW")) {
             return "BOW";
         }
