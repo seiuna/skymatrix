@@ -3,7 +3,6 @@ package cn.seiua.skymatrix.client;
 import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.component.*;
 import cn.seiua.skymatrix.client.config.Setting;
-import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.*;
 import com.google.common.collect.EvictingQueue;
@@ -11,13 +10,10 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.Screen;
-import net.minecraft.client.option.KeyBinding;
 import net.minecraft.command.argument.BlockPosArgumentType;
 import net.minecraft.command.argument.DefaultPosArgument;
-import net.minecraft.network.packet.c2s.play.PlayerActionC2SPacket;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
@@ -72,13 +68,13 @@ public final class Client {
         if(screen!=null)
             MinecraftClient.getInstance().currentScreen=screen;
     }
-    public static boolean doBlackList(Object object) {
+    @EventTarget
+    private void  doBlackList(BlockBreakingEvent object) {
         if(SkyMatrix.mc.crosshairTarget instanceof BlockHitResult){
             if(blackList.contains(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos().add(0,0,0))||blackList.contains(SkyMatrix.mc.world.getBlockState(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos()).getBlock().getName().toString())){
-                return true;
+                object.setCancelled(true);
             }
         }
-        return false;
     }
     // block breaking progress end
     @Init(level = 999)

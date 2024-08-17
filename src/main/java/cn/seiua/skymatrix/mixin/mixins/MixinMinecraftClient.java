@@ -109,7 +109,9 @@ public abstract class MixinMinecraftClient {
             at = @At("HEAD"),
             method = "handleBlockBreaking")
     private void HandleBlockBreaking(CallbackInfo ci) {
-        if(Client.doBlackList("")) {
+        BlockBreakingEvent event= new BlockBreakingEvent();
+        event.call();
+        if(event.isCancelled()) {
             ci.cancel();
         }
     }

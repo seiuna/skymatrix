@@ -5,36 +5,24 @@ import cn.seiua.skymatrix.client.*;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
+import cn.seiua.skymatrix.client.config.Setting;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
 import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
 import cn.seiua.skymatrix.event.EventTarget;
-import cn.seiua.skymatrix.event.events.ClientTickEvent;
-import cn.seiua.skymatrix.event.events.GameMessageEvent;
-import cn.seiua.skymatrix.event.events.ServerPacketEvent;
-import cn.seiua.skymatrix.event.events.WorldRenderEvent;
+import cn.seiua.skymatrix.event.events.*;
 import cn.seiua.skymatrix.gui.Icons;
 import cn.seiua.skymatrix.gui.Theme;
 import cn.seiua.skymatrix.render.BlockTextTarget;
 import cn.seiua.skymatrix.utils.*;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.block.ShapeContext;
-import net.minecraft.block.StainedGlassBlock;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.LivingEntity;
-import net.minecraft.item.ItemStack;
-import net.minecraft.network.packet.Packet;
-import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
-import net.minecraft.registry.tag.FluidTags;
 import net.minecraft.text.Text;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.RaycastContext;
 
@@ -115,7 +103,15 @@ public class MiningHelperV2 implements IToggle {
     private BlockFilter blockFilter;
     private PositionFilter positionFilter;
 
+    @EventTarget
+    private void  doBlackList(BlockBreakingEvent object) {
+        if(SkyMatrix.mc.crosshairTarget instanceof BlockHitResult){
+                      if(positionFilter!=null&&!positionFilter.filter(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos().add(0,0,0))){
+                          object.setCancelled(true);
+                      }
 
+        }
+    }
 
     public interface BlockFilter{
         boolean filter(Block block);
@@ -339,6 +335,8 @@ public class MiningHelperV2 implements IToggle {
     }
     @EventTarget
     public void onRender(WorldRenderEvent e) {
+        if(Setting.getInstance().debug.isValue()){
+
 
           LivingEntity player = mc.player;
           int i = 1;
@@ -354,7 +352,7 @@ public class MiningHelperV2 implements IToggle {
               }}
 
 
-    }
+    }  }
 
     @Override
     public void disable() {
