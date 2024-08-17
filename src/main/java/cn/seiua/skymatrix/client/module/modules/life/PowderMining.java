@@ -1,6 +1,7 @@
 package cn.seiua.skymatrix.client.module.modules.life;
 
 import cn.seiua.skymatrix.SkyMatrix;
+import cn.seiua.skymatrix.client.Client;
 import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.RotationFaker;
 import cn.seiua.skymatrix.client.SmoothRotation;
@@ -10,6 +11,8 @@ import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
+import cn.seiua.skymatrix.client.waypoint.Waypoint;
+import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
 import cn.seiua.skymatrix.event.EventTarget;
@@ -26,8 +29,10 @@ import net.minecraft.block.StonecutterBlock;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
 import net.minecraft.util.hit.BlockHitResult;
+import net.minecraft.util.hit.HitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
+import net.minecraft.world.RaycastContext;
 
 import java.awt.*;
 import java.util.Arrays;
@@ -43,6 +48,13 @@ public class PowderMining implements IToggle {
     private MiningHelperV2 miningHelperV2;
     @Value(name = "keyBind")
     public KeyBind keyBind = new KeyBind(Arrays.asList(), ReflectUtils.getModuleName(this));
+    @Value(name = "auto", desc = "")
+    @Sign(sign = Signs.BETA)
+    ToggleSwitch auto = new ToggleSwitch(false);
+    @Value(name = "count", desc = "挖矿角度")
+    @Sign(sign = Signs.BETA)
+    @Hide(following = "auto")
+    ValueSlider count = new ValueSlider(1, 1, 3, 1f);
     @Value(name = "angle mining", desc = "挖矿角度")
     @Sign(sign = Signs.BETA)
     ValueSlider angle = new ValueSlider(180, 0, 180, 0.1f);
@@ -60,28 +72,47 @@ public class PowderMining implements IToggle {
     SkyblockItemSelect tool2 = new SkyblockItemSelect("", false, Selector::bestMiningTool, Filter::miningTool);
 
     private BlockPos target = null;
+    private BlockPos to = null;
 
     private Vec3d look = null;
 
-    private int tick;
+    private int countc;
 
     private HashSet<String> blackList = new HashSet<>();
+    public void updateNext(){
+        to=null;
+        Vec3d vec3d = mc.player.getCameraPosVec(1f).add(0,-1,0);
+        Vec3d vec3d2 = Vec3d.fromPolar(0, mc.player.getYaw(1f)+40);
+        Vec3d vec3d3 = vec3d.add(vec3d2.x * 40, vec3d2.y * 40, vec3d2.z * 40);
+        HitResult hitResult =    mc.world.raycast(new RaycastContext(vec3d, vec3d3, RaycastContext.ShapeType.OUTLINE,RaycastContext.FluidHandling.NONE, mc.player));
+        if (hitResult.getType().equals(HitResult.Type.BLOCK)) {
+            BlockPos blockPos= ((BlockHitResult) hitResult).getBlockPos();
+            to=blockPos;
+            Vec3d ddd=to.toCenterPos().subtract(mc.player.getPos());
+            ddd=ddd.multiply(1/ddd.length());
+            Vec3d ccc=to.toCenterPos().add(-ddd.x*2,0,-ddd.z*2);
+            to=new BlockPos((int) ccc.x, (int) ccc.y, (int) ccc.z).add(0,-1,0);
+        }
 
+
+        if(target!=null){
+            if(!(mc.world.getBlockState(target).getBlock() instanceof ChestBlock)||target.toCenterPos().distanceTo(mc.player.getEyePos())>3){
+                target=null;
+                look=null;
+            }else {
+                if(MathUtils.calculateAngle(mc.player.getRotationVec(1),target.toCenterPos().subtract(mc.player.getEyePos()))>=anglec.getIntValue()){
+                    target=null;
+                    look=null;
+                }
+            }
+
+        }
+    }
     @EventTarget
     public void onTick(ClientTickEvent e) {
        int range=4;
-       if(target!=null){
-           if(!(mc.world.getBlockState(target).getBlock() instanceof ChestBlock)){
-               target=null;
-               look=null;
-           }else {
-               if(MathUtils.calculateAngle(mc.player.getRotationVec(1),target.toCenterPos().subtract(mc.player.getEyePos()))>=anglec.getIntValue()){
-                   target=null;
-                   look=null;
-               }
-           }
-
-       }
+       updateNext();
+       int c=0;
        for(int x=-range;x<range;x++){
            for(int y=-range;y<range;y++){
                for(int z=-range;z<range;z++){
@@ -92,13 +123,14 @@ public class PowderMining implements IToggle {
                    BlockState blockState = mc.world.getBlockState(blockPos);
                    Block block = blockState.getBlock();
                    if(block instanceof ChestBlock){
-                       if(MathUtils.calculateAngle(mc.player.getRotationVec(1),blockPos.toCenterPos().subtract(mc.player.getEyePos()))>anglec.getIntValue()){
+                       if(MathUtils.calculateAngle(mc.player.getRotationVec(1),blockPos.toCenterPos().subtract(mc.player.getEyePos()))>anglec.getIntValue()||blockPos.toCenterPos().distanceTo(mc.player.getEyePos())>3){
                           continue;
                        }
                        if(target==null){
                            target=blockPos;
                            look=target.toCenterPos();
                        }
+                       c++;
                        if(mc.player.getPos().distanceTo(target.toCenterPos())>mc.player.getPos().distanceTo(blockPos.toCenterPos())){
                            target=blockPos;
                            if(instant.isValue()){
@@ -109,8 +141,10 @@ public class PowderMining implements IToggle {
                }
            }
        }
-        if(mc.options.attackKey.isPressed()){
+       countc=c;
+        if(mc.options.attackKey.isPressed()||(look!=null&&auto.isValue()&&countc>=count.getIntValue())){
             if(look!=null){
+                Client.instance.setKeepBlockBreaking(true);
                tool2.switchTo();
                   if(this.instant.isValue()){
                       if(mc.crosshairTarget instanceof BlockHitResult&&mc.crosshairTarget.getType()== BlockHitResult.Type.BLOCK){
@@ -143,6 +177,9 @@ public class PowderMining implements IToggle {
     }
     @EventTarget
     public void onRender(WorldRenderEvent e) {
+        if(to!=null){
+            RenderUtilsV2.renderOutlineBlock(e.getMatrixStack(),to, Theme.getInstance().THEME_UI_SELECTED.value);
+        }
         if(target!=null){
             RenderUtilsV2.renderOutlineBlock(e.getMatrixStack(),target, Theme.getInstance().THEME_UI_SELECTED.value);
             if(look!=null){
@@ -174,10 +211,10 @@ public class PowderMining implements IToggle {
     private boolean filterP(BlockPos blockPos){
 
 
-        if(mc.options.attackKey.isPressed()){
+        if(mc.options.attackKey.isPressed()||(look!=null&&auto.isValue()&&countc>count.getIntValue())){
             return false;
         }
-        if(MathUtils.calculateAngle(mc.player.getRotationVec(1),blockPos.toCenterPos().subtract(mc.player.getEyePos()))>angle.getIntValue()){
+        if(MathUtils.calculateAngle(mc.player.getRotationVec(1),blockPos.toCenterPos().subtract(mc.player.getEyePos()))>=angle.getIntValue()){
             return false;
         }
 
