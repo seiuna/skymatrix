@@ -1,4 +1,4 @@
-package cn.seiua.skymatrix.client;
+package cn.seiua.skymatrix.client.rotation;
 
 import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.component.Component;
@@ -13,6 +13,7 @@ import net.minecraft.util.math.Vec3d;
 
 @Component
 @Event(register = true)
+@Deprecated
 public final class RotationFaker {
     private boolean fakeRotation;
     private float serverYaw;

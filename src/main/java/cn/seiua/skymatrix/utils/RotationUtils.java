@@ -2,8 +2,8 @@ package cn.seiua.skymatrix.utils;
 
 
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.Rotation;
-import cn.seiua.skymatrix.client.RotationFaker;
+import cn.seiua.skymatrix.client.rotation.Rotation;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.Entity;
 import net.minecraft.util.math.BlockPos;

@@ -1,4 +1,4 @@
-package cn.seiua.skymatrix.client;
+package cn.seiua.skymatrix.client.rotation;
 
 import net.minecraft.util.math.MathHelper;
 

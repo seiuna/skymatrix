@@ -1,12 +1,14 @@
-package cn.seiua.skymatrix.client;
+package cn.seiua.skymatrix.client.rotation;
 
 import cn.seiua.skymatrix.SkyMatrix;
+import cn.seiua.skymatrix.client.Run;
 import cn.seiua.skymatrix.client.component.Component;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.Use;
 
 @Component
 @Event(register = true)
+@Deprecated
 public class SmoothRotation {
     public float yawDifference;
     public boolean running = false;
@@ -15,6 +17,7 @@ public class SmoothRotation {
     private int tickCounter = 0;
 
     public RotatioTask task;
+    public RotatioTask task1;
 
     public boolean isClient() {
         if (task == null || task.isClient()) {
@@ -26,20 +29,7 @@ public class SmoothRotation {
     @Use
     public RotationFaker rotationFaker;
 
-    public SmoothRotation() {
-        new Thread(this::update).start();
-    }
 
-    private void update() {
-        while (true) {
-            try {
-                Thread.sleep(2l);
-                onTick();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
-    }
 
     public void smoothLook(Rotation rotation, float ticks, Run callback, boolean client, boolean disPitch, boolean disYaw) {
         if (this.ticks == 0) {
@@ -81,12 +71,8 @@ public class SmoothRotation {
         if (tickCounter < ticks) {
             running = true;
             if (task.client) {
-
-
                 rotationFaker.faceVectorClient(new Rotation(rotationFaker.getServerYaw() + yawDifference / ticks, rotationFaker.getServerPitch() + pitchDifference / ticks));
-
             } else
-
                 rotationFaker.faceVectorPacket(new Rotation(rotationFaker.getServerYaw() + yawDifference / ticks, rotationFaker.getServerPitch() + pitchDifference / ticks));
             tickCounter++;
         } else if (task.getCallback() != null) {
@@ -105,13 +91,8 @@ public class SmoothRotation {
         } else {
             if (!this.task.client) {
 
-//                 if (!task.isDisPitch()) {
                 rotationFaker.setServerPitch(SkyMatrix.mc.player.getPitch());
-//                 }
-//                if (!task.isDisYaw()) {
                 rotationFaker.setServerYaw(SkyMatrix.mc.player.getYaw());
-//                }
-
             }
             task = null;
             running = false;
@@ -142,7 +123,6 @@ public class SmoothRotation {
 
     class RotatioTask {
         private Run callback = null;
-
         private boolean client;
         private boolean disPitch;
         private boolean disYaw;
