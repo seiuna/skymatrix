@@ -11,7 +11,6 @@ public class IRCHeartBeat2C extends IRCPacket<IRCHeartBeat2C> {
         this.flag = flag;
         this.setData(this);
     }
-
     public int getFlag() {
         return flag;
     }
