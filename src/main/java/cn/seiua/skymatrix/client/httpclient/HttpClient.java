@@ -12,6 +12,7 @@ import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
+import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -64,10 +65,41 @@ public class HttpClient {
     }
 
     public <V> void get(String url, CallBack<V> callBack, Class<V> type) throws IOException {
-        final Request request = new Request.Builder()
-                .url(url)
-                .build();
-        final Call call = client.newCall(request);
+        get(url, callBack, type, null, null);
+    }
+
+    public <V> void get(String url, CallBack<V> callBack, Class<V> type, Object data, Map<String, String> headers) throws IOException {
+        final Request.Builder builder = new Request.Builder()
+                .url(url);
+        if (headers != null) {
+            headers.forEach(builder::addHeader);
+        }
+        if (data != null) {
+            String jsonData = this.mapper.writeValueAsString(data);
+            RequestBody requestBody = RequestBody.create(jsonData, MediaType.parse("application/json; charset=utf-8"));
+            builder.post(requestBody);
+        }
+        final Call call = client.newCall(builder.build());
+        queue.add(new Task(callBack, call, type));
+    }
+
+    public <V> void post(String url, CallBack<V> callBack, Class<V> type) throws IOException {
+        post(url, callBack, type, null, null);
+    }
+
+
+    public <V> void post(String url, CallBack<V> callBack, Class<V> type, Object data, Map<String, String> headers) throws IOException {
+        final Request.Builder builder = new Request.Builder()
+                .url(url);
+        if (headers != null) {
+            headers.forEach(builder::addHeader);
+        }
+        if (data != null) {
+            String jsonData = this.mapper.writeValueAsString(data);
+            RequestBody requestBody = RequestBody.create(jsonData, MediaType.parse("application/json; charset=utf-8"));
+            builder.post(requestBody);
+        }
+        final Call call = client.newCall(builder.build());
 
         queue.add(new Task(callBack, call, type));
     }
@@ -79,12 +111,10 @@ public class HttpClient {
             try {
                 Task task = queue.poll();
                 if (task != null) {
-
                     Response response = task.getCall().execute();
                     String data = response.body().string();
                     Object o = this.mapper.readValue(data, task.getType());
                     task.getCallBack().callBack(o, data);
-
                 }
             } catch (IOException e) {
                 e.printStackTrace();
