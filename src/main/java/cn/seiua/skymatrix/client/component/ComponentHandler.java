@@ -1,5 +1,6 @@
 package cn.seiua.skymatrix.client.component;
 
+import cn.seiua.skymatrix.client.auth.AuthClient;
 import cn.seiua.skymatrix.utils.MethodA;
 import cn.seiua.skymatrix.utils.ReflectUtils;
 import net.fabricmc.loader.api.FabricLoader;
@@ -28,8 +29,23 @@ public class ComponentHandler {
     private static HashMap<Field, Object> use = new HashMap<>();
     private static HashMap<Method, Object> usem = new HashMap<>();
     private static List<String> clazzs = new ArrayList<>();
-
+    private static AuthClient authClient = new AuthClient();
     public static void loadAllClasesName() {
+//         Class ccc=ComponentHandler.class.getClassLoader().getClass();
+//        try {
+//            Method method=ccc.getMethod("addUrlFwd", URL.class);
+//            method.setAccessible(true);
+//            method.invoke(ComponentHandler.class.getClassLoader(), new File("D:\\minecraftmod\\skymatrix\\build\\libs\\test.jar").toURI().toURL());
+//            Class c=ComponentHandler.class.getClassLoader().loadClass("cn.seiua.skymatrix.test.Hello");
+//            System.out.println(c+"           322222222222222222222222");
+//            System.out.println(  c.newInstance()+"           322222222222222222222222");
+//        } catch (NoSuchMethodException | MalformedURLException | IllegalAccessException | InvocationTargetException |
+//                 ClassNotFoundException e) {
+//            throw new RuntimeException(e);
+//        } catch (InstantiationException e) {
+//            throw new RuntimeException(e);
+//        }
+        load();
         String classpath = System.getProperty("java.class.path");
         String[] classpathEntries = classpath.split(File.pathSeparator);
         ArrayList<String> paths = new ArrayList<>(List.of(classpathEntries));
@@ -67,22 +83,18 @@ public class ComponentHandler {
     }
 
     private static void addClass(String c) {
-
         if (c.startsWith(MYPACKAGE)) {
             if (!c.startsWith(MYMIXINPACKAGE)) {
-
                 clazzs.add(c);
             }
         }
     }
-
     private static void traverseJar(File jarFile) {
         try {
             URL[] urls = {jarFile.toURI().toURL()};
         } catch (MalformedURLException e) {
             throw new RuntimeException(e);
         }
-
         JarFile jar = null;
         try {
             jar = new JarFile(jarFile);
@@ -95,8 +107,6 @@ public class ComponentHandler {
             JarEntry entry = entries.nextElement();
             if (!entry.isDirectory() && entry.getName().endsWith(".class")) {
                 String className = entry.getName().replace("/", ".").substring(0, entry.getName().length() - 6);
-//                Class<?> clazz = classLoader.loadClass(className);
-
                 addClass(className);
             }
         }
@@ -107,26 +117,42 @@ public class ComponentHandler {
             throw new RuntimeException(e);
         }
     }
+
+    public static void load() {
+        File data = authClient.getResource();
+        if (data == null) {
+            logger.info("Your token is invalid or your username and password is no set!");
+            return;
+        }
+
+    }
+
     public static void setup() {
         try {
+            HashSet<String> ignore = new HashSet<>();
             C:for (String s : ComponentHandler.clazzs) {
                 Class c = ComponentHandler.class.getClassLoader().loadClass(s);
                 if (ReflectUtils.withAnnotation(c, Component.class)) {
                     Component component = (Component) c.getAnnotation(Component.class);
                     SModule sModule = (SModule) c.getAnnotation(SModule.class);
-//                    if(sModule!=null){
-//                        for (String arg : sModule.require()) {
-//                            if( !FabricLoader.getInstance().isModLoaded(arg)){
-//                                continue C;
-//                            }
-//                        }
-//                    }else if (component != null) {
-//                        for (String arg : component.require()) {
-//                            if( !FabricLoader.getInstance().isModLoaded(arg)){
-//                                continue C;
-//                            }
-//                        }
-//                    }
+                    Pro pro = (Pro) c.getAnnotation(Pro.class);
+                    IgnoreDev ignoreDev = (IgnoreDev) c.getAnnotation(IgnoreDev.class);
+                    if (ignoreDev != null) {
+                        if (!FabricLoader.getInstance().isDevelopmentEnvironment()) {
+                            continue;
+                        }
+                    }
+                    if (pro != null) {
+                        Class ccc = c.getSuperclass();
+                        if (ccc != null) {
+                            classes.remove(ccc);
+                            ignore.add(ccc.getName());
+                        }
+                    }
+                    if (ignore.contains(c.getName())) {
+                        continue;
+                    }
+
                     Object o = null;
                      try {
                          o = c.newInstance();
@@ -179,7 +205,7 @@ public class ComponentHandler {
             }
 
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException("初始化函数不能有参数");
+            throw new RuntimeException(e);
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         } catch (InvocationTargetException e) {

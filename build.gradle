@@ -1,3 +1,10 @@
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.tree.ClassNode
+
+import java.util.jar.JarEntry
+import java.util.jar.JarFile
+import java.util.jar.JarOutputStream
+
 plugins {
     id 'fabric-loom' version '1.7-SNAPSHOT'
     id 'maven-publish'
@@ -19,6 +26,8 @@ loom {
         useLegacyMixinAp = false
     }
 }
+
+
 dependencies {
     implementation files("libs/baritone-api-1.10.1.jar")
     implementation 'com.alibaba:fastjson:2.0.28'
@@ -50,7 +59,6 @@ base {
 
 processResources {
     inputs.property "version", project.version
-
     filesMatching("fabric.mod.json") {
         expand "version": project.version
     }
@@ -83,13 +91,12 @@ jar {
                     it.name.contains("kotlin-stdlib") ||
                     it.name.contains("okio") ||
                     it.name.contains("okhttp")||
-                    it.name.contains("baritone")
+                    it.name.contains("baritone-api")
         }.collect {
             zipTree(it)
         }
     }
     manifest.attributes(
-
             "tweakClass": "cn.seiua.skymatrix.client.MyTweaker",
             "TweakOrder": 0,
     )
@@ -100,7 +107,10 @@ tasks.withType(JavaCompile).configureEach {
 tasks.withType(Javadoc).configureEach {
     options.encoding = "utf-8"
 }
-
+tasks.register("split", SplitTask)
+build {
+    finalizedBy("split")
+}
 // configure the maven publication
 publishing {
     publications {
@@ -116,4 +126,65 @@ publishing {
         // The repositories here will be used for publishing your artifact, not for
         // retrieving dependencies.
     }
+}
+
+abstract class SplitTask extends DefaultTask {
+    @TaskAction
+    void split() {
+        this.prepare()
+        this.split1()
+    }
+
+    void split1() {
+        def input = new File("${project.rootDir}/build/libs/${project.archives_base_name}-${project.mod_version}.jar")
+        def sin = new File("${project.rootDir}/build/libs/${project.archives_base_name}-${project.mod_version}-sin.jar")
+        def split = new File("${project.rootDir}/build/libs/${project.archives_base_name}-${project.mod_version}-split.jar")
+        // 分离带有Lcn/seiua/skymatrix/client/component/Pro;注解的类到新的jar文件 output
+        // Unsupported class file major version 29556
+        def jar = new JarFile(input)
+        def sinOutputStream = new JarOutputStream(new FileOutputStream(sin))
+        def splitOutputStream = new JarOutputStream(new FileOutputStream(split))
+        jar.entries().each { entry ->
+            def inputStream = jar.getInputStream(entry)
+            def sinoutputStream1 = sinOutputStream
+            def splitoutputStream1 = splitOutputStream
+            def flag = true;
+            if (list.contains(entry.name)) {
+                sinoutputStream1.putNextEntry(new JarEntry(entry.name))
+                sinoutputStream1 << inputStream.bytes
+                sinoutputStream1.closeEntry()
+            } else {
+                splitoutputStream1.putNextEntry(new JarEntry(entry.name))
+                splitoutputStream1 << inputStream.bytes
+                splitoutputStream1.closeEntry()
+            }
+        }
+        sinOutputStream.close()
+        splitOutputStream.close()
+        jar.close();
+    }
+    public List list = []
+
+    void prepare() {
+        def input = new File("${project.rootDir}/build/libs/${project.archives_base_name}-${project.mod_version}.jar")
+        // 分离带有Lcn/seiua/skymatrix/client/component/Pro;注解的类到新的jar文件 output
+        // Unsupported class file major version 29556
+        def jar = new JarFile(input)
+        jar.entries().each { entry ->
+            def inputStream = jar.getInputStream(entry)
+            if (entry.name.endsWith(".class") && entry.name.startsWith("cn/seiua/skymatrix")) {
+                def classReader = new ClassReader(inputStream)
+                def classNode = new ClassNode()
+                classReader.accept(classNode, 0)
+                def annotationNode = classNode.visibleAnnotations?.find { it.desc == "Lcn/seiua/skymatrix/client/component/Pro;" }
+                if (annotationNode == null) {
+                    list.add(entry.name)
+                }
+            } else {
+                list.add(entry.name)
+            }
+        }
+        jar.close();
+    }
+
 }
