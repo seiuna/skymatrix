@@ -10,3 +10,6 @@ accessible field net/minecraft/client/Mouse cursorLocked Z
 accessible field net/minecraft/command/argument/DefaultPosArgument x Lnet/minecraft/command/argument/CoordinateArgument;
 accessible field net/minecraft/command/argument/DefaultPosArgument y Lnet/minecraft/command/argument/CoordinateArgument;
 accessible field net/minecraft/command/argument/DefaultPosArgument z Lnet/minecraft/command/argument/CoordinateArgument;
+#visibleMessages
+accessible field net/minecraft/client/gui/hud/ChatHud visibleMessages Ljava/util/List;
+accessible field net/minecraft/client/network/ClientPlayerInteractionManager breakingBlock Z

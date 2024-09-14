@@ -2,6 +2,7 @@ package cn.seiua.skymatrix.client.httpclient;
 
 import cn.seiua.skymatrix.client.component.Component;
 import cn.seiua.skymatrix.client.component.Init;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.*;
 
@@ -10,6 +11,8 @@ import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
 import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.util.Map;
@@ -64,11 +67,15 @@ public class HttpClient {
         return new Request.Builder().post(requestBody).url(url).build();
     }
 
-    public <V> void get(String url, CallBack<V> callBack, Class<V> type) throws IOException {
+    public <V> void get(String url, CallBack<V> callBack, TypeReference type) throws IOException {
         get(url, callBack, type, null, null);
     }
 
-    public <V> void get(String url, CallBack<V> callBack, Class<V> type, Object data, Map<String, String> headers) throws IOException {
+    public <V> void get(String url, CallBack<V> callBack, TypeReference type, Object data, Map<String, String> headers) throws IOException {
+        get(URI.create(url).toURL(), callBack, type, data, headers);
+    }
+
+    public <V> void get(URL url, CallBack<V> callBack, TypeReference type, Object data, Map<String, String> headers) throws IOException {
         final Request.Builder builder = new Request.Builder()
                 .url(url);
         if (headers != null) {
@@ -83,12 +90,16 @@ public class HttpClient {
         queue.add(new Task(callBack, call, type));
     }
 
-    public <V> void post(String url, CallBack<V> callBack, Class<V> type) throws IOException {
+    public <V> void post(String url, CallBack<V> callBack, TypeReference type) throws IOException {
         post(url, callBack, type, null, null);
     }
 
 
-    public <V> void post(String url, CallBack<V> callBack, Class<V> type, Object data, Map<String, String> headers) throws IOException {
+    public <V> void post(String url, CallBack<V> callBack, TypeReference type, Object data, Map<String, String> headers) throws IOException {
+        post(URI.create(url).toURL(), callBack, type, data, headers);
+    }
+
+    public <V> void post(URL url, CallBack<V> callBack, TypeReference type, Object data, Map<String, String> headers) throws IOException {
         final Request.Builder builder = new Request.Builder()
                 .url(url);
         if (headers != null) {
@@ -100,7 +111,6 @@ public class HttpClient {
             builder.post(requestBody);
         }
         final Call call = client.newCall(builder.build());
-
         queue.add(new Task(callBack, call, type));
     }
 
@@ -108,18 +118,23 @@ public class HttpClient {
 
     public void run() {
         while (true) {
-            try {
-                Task task = queue.poll();
-                if (task != null) {
-                    Response response = task.getCall().execute();
-                    String data = response.body().string();
-                    Object o = this.mapper.readValue(data, task.getType());
-                    task.getCallBack().callBack(o, data);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            doTask();
         }
     }
+
+    public void doTask() {
+        try {
+            Task task = queue.poll();
+            if (task != null) {
+                Response response = task.getCall().execute();
+                String data = response.body().string();
+                Object o = this.mapper.readValue(data, task.getTarget());
+                task.getCallBack().callBack(o, data);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 }

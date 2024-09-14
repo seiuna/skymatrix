@@ -5,11 +5,10 @@ import cn.seiua.skymatrix.client.Client;
 import cn.seiua.skymatrix.client.ConfigManager;
 import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.component.Event;
-import cn.seiua.skymatrix.client.component.Init;
-import cn.seiua.skymatrix.client.component.SModule;
-import cn.seiua.skymatrix.client.component.Use;
+import cn.seiua.skymatrix.client.component.*;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
+import cn.seiua.skymatrix.client.rotation.RotationFuck;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
 import cn.seiua.skymatrix.event.EventTarget;
@@ -18,11 +17,9 @@ import cn.seiua.skymatrix.event.events.FluidRenderEvent;
 import cn.seiua.skymatrix.event.events.WorldChangeEvent;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
 import cn.seiua.skymatrix.gui.Icons;
-import cn.seiua.skymatrix.render.BlockLocTarget;
 import cn.seiua.skymatrix.render.BlockTarget;
 import cn.seiua.skymatrix.utils.ReflectUtils;
-import cn.seiua.skymatrix.utils.RenderUtils;
-import com.mojang.blaze3d.systems.RenderSystem;
+import cn.seiua.skymatrix.utils.RotationUtils;
 import net.minecraft.util.math.BlockPos;
 
 import java.awt.*;
@@ -34,6 +31,7 @@ import java.util.Map;
 @Event
 @Sign(sign = Signs.FREE)
 @SModule(name = "测试", category = "render")
+@IgnoreDev
 public class Test implements IToggle {
 
 //Objects.hash(chunkX, chunkZ);
@@ -62,6 +60,8 @@ public class Test implements IToggle {
 
     @Use
     private ConfigManager configManager;
+    @Use
+    private RotationFuck rotationFuck;
 
     @Init
     public void init() {
@@ -86,6 +86,8 @@ public class Test implements IToggle {
 
     @EventTarget
     public void onTick(ClientTickEvent e) {
+
+        rotationFuck.smoothLook(RotationUtils.toRotation(new BlockPos(0, 0, 0)), 200, null);
     }
 
     @EventTarget

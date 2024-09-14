@@ -1,12 +1,16 @@
 package cn.seiua.skymatrix.client.module.modules.combat;
 
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.*;
+import cn.seiua.skymatrix.client.Client;
+import cn.seiua.skymatrix.client.HypixelWay;
+import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
+import cn.seiua.skymatrix.client.rotation.SmoothRotation;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.config.option.SingleChoice;

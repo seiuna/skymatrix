@@ -3,16 +3,14 @@ package cn.seiua.skymatrix.client.module.modules.life;
 import baritone.api.BaritoneAPI;
 import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.IToggle;
-import cn.seiua.skymatrix.client.Rotation;
-import cn.seiua.skymatrix.client.RotationFaker;
-import cn.seiua.skymatrix.client.SmoothRotation;
-import cn.seiua.skymatrix.client.component.Event;
-import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
 import cn.seiua.skymatrix.client.module.modules.ModuleTools;
+import cn.seiua.skymatrix.client.rotation.Rotation;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
+import cn.seiua.skymatrix.client.rotation.SmoothRotation;
 import cn.seiua.skymatrix.client.waypoint.WPProcess;
 import cn.seiua.skymatrix.client.waypoint.Waypoint;
 import cn.seiua.skymatrix.client.waypoint.WaypointEntity;
@@ -163,6 +161,7 @@ public class FarmingHelper implements IToggle, Hud {
         if (this.mode.selectedValue().equals("manual")) {
             return;
         }
+
         if (this.status == Status.ESCAPING) return;
         if (this.status == Status.WAiTING) return;
         if (event.getPacket() instanceof UpdateSelectedSlotS2CPacket) {

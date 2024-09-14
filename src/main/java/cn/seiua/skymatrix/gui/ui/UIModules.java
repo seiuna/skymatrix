@@ -39,10 +39,8 @@ public class UIModules extends UI {
     }
 
     public void addModuleInfo(ModuleInfo moduleInfo) {
-
         modules.add(moduleInfo);
         UIModule uiModule = new UIModule(moduleInfo);
-
         uiModules.add(uiModule);
         String category = moduleInfo.getCategory();
         String name = moduleInfo.getName();
@@ -52,14 +50,11 @@ public class UIModules extends UI {
         HashMap<UI, List<HideB>> hideMap = new HashMap<>();
         HashMap<String, IHide> temp1 = new HashMap<>();
         HashMap<String, UI> temp2 = new HashMap<>();
-
         for (Field field : c.getDeclaredFields()) {
             Value value = (Value) field.getAnnotation(Value.class);
             Sign sign = (Sign) field.getAnnotation(Sign.class);
             if (field.getAnnotation(Ignore.class) != null) continue;
             if (value != null) {
-
-
                 try {
                     field.setAccessible(true);
                     Object uobj = field.get(o);
@@ -140,7 +135,6 @@ public class UIModules extends UI {
         setWidth(250);
         setHeight(58);
         setMid(true);
-
         int sty = (int) (getY() + t + 58);
         if (isOpen()) {
 

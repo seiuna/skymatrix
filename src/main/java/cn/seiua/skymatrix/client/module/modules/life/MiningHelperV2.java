@@ -1,22 +1,32 @@
 package cn.seiua.skymatrix.client.module.modules.life;
 
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.*;
+import cn.seiua.skymatrix.client.Client;
+import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.config.Setting;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
+import cn.seiua.skymatrix.client.rotation.ClientRotation;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
+import cn.seiua.skymatrix.client.rotation.SmoothRotation;
 import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
-import cn.seiua.skymatrix.config.option.*;
+import cn.seiua.skymatrix.config.option.KeyBind;
+import cn.seiua.skymatrix.config.option.ToggleSwitch;
+import cn.seiua.skymatrix.config.option.ValueInput;
+import cn.seiua.skymatrix.config.option.ValueSlider;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.*;
 import cn.seiua.skymatrix.gui.Icons;
 import cn.seiua.skymatrix.gui.Theme;
 import cn.seiua.skymatrix.render.BlockTextTarget;
-import cn.seiua.skymatrix.utils.*;
+import cn.seiua.skymatrix.utils.MathUtils;
+import cn.seiua.skymatrix.utils.ReflectUtils;
+import cn.seiua.skymatrix.utils.RenderUtilsV2;
+import cn.seiua.skymatrix.utils.RotationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.text.Text;
@@ -68,7 +78,10 @@ public class MiningHelperV2 implements IToggle {
     public BlockPos target;
     @Use
     Client client;
+    public boolean following = false;
     private int holdTick = 0;
+    @Use
+    ClientRotation clientRotation;
     private static final int RANGE = 10;
     private HashMap<String, Integer> black = new HashMap<>();
     private Vec3d holdVec;
@@ -109,7 +122,6 @@ public class MiningHelperV2 implements IToggle {
                       if(positionFilter!=null&&!positionFilter.filter(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos().add(0,0,0))){
                           object.setCancelled(true);
                       }
-
         }
     }
 
@@ -119,33 +131,7 @@ public class MiningHelperV2 implements IToggle {
     public interface PositionFilter{
         boolean filter(BlockPos blockPos);
     }
-    public int caculateTick(Block block){
-        if(!pingless.isValue())return -1;
-        int rtv=-1;
-        int m=1;
-        int ms=Integer.parseInt(this.mininspeed.getValue());
-
-        if(Client.m_ability){
-            ms=Integer.parseInt(this.mininspeed1.getValue());
-        }
-        String blockName = block.getName().toString();
-        if(blockName.contains("red_stained_glass"))rtv= Math.round(RUBY*30/(ms*m));
-        if(blockName.contains("orange_stained_glass"))rtv= Math.round(AMBER*30/(ms*m));
-        if(blockName.contains("light_blue_stained_glass"))rtv= Math.round(SAPPHIRE*30/(ms*m));
-        if(blockName.contains("lime_stained_glass"))rtv= Math.round(JADE*30/(ms*m));
-        if(blockName.contains("purple_stained_glass"))rtv= Math.round(AMETHYST*30/(ms*m));
-        if(blockName.contains("yellow_stained_glass"))rtv= Math.round(TOPAZ*30/(ms*m));
-        if(blockName.contains("magenta_stained_glass"))rtv= Math.round(JASPER*30/(ms*m));
-        if(blockName.contains("prismarine"))rtv= Math.round(800*30/(ms*m));
-        if(blockName.contains("light_blue_wool"))rtv= Math.round(1500*30/(ms*m));
-        if(blockName.contains("cyan_terracotta")||blockName.contains("Gray Wool"))rtv= Math.round(500*30/(ms*m));
-        if(blockName.contains("polished_diorite"))rtv= Math.round(2000*30/(ms*m));
-        if(blockName.contains("stone"))rtv= Math.round(10*30/(ms*m));
-        if(rtv!=-1) {
-                rtv=rtv+range.getIntValue();
-        }
-        return rtv;
-    }
+    private ArrayList<BlockInfo> pos = new ArrayList<>();
     int tick;
 
     public boolean isTarget(BlockPos bp) {
@@ -173,12 +159,58 @@ public class MiningHelperV2 implements IToggle {
     public void onMessage(GameMessageEvent e) {
 
     }
-    ArrayList<BlockInfo> pos = new ArrayList<>();
+
+    public int caculateTick(Block block){
+        if(!pingless.isValue())return -1;
+        int rtv=-1;
+        int m=1;
+        int ms=Integer.parseInt(this.mininspeed.getValue());
+
+        if(Client.m_ability){
+            ms=Integer.parseInt(this.mininspeed1.getValue());
+        }
+        String blockName = block.getName().toString();
+        if(blockName.contains("red_stained_glass"))rtv= Math.round(RUBY*30/(ms*m));
+        if(blockName.contains("orange_stained_glass"))rtv= Math.round(AMBER*30/(ms*m));
+        if(blockName.contains("light_blue_stained_glass"))rtv= Math.round(SAPPHIRE*30/(ms*m));
+        if(blockName.contains("lime_stained_glass"))rtv= Math.round(JADE*30/(ms*m));
+        if(blockName.contains("purple_stained_glass"))rtv= Math.round(AMETHYST*30/(ms*m));
+        if(blockName.contains("yellow_stained_glass"))rtv= Math.round(TOPAZ*30/(ms*m));
+        if(blockName.contains("magenta_stained_glass"))rtv= Math.round(JASPER*30/(ms*m));
+        if (blockName.contains("coal")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("iron")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("diamond")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("iron")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("lapis")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("gold")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("emerald")) rtv = Math.round(30 * 30 / (ms * m));
+        if (blockName.contains("redstone")) rtv = Math.round(1800 * 30 / (ms * m));
+        if(blockName.contains("prismarine"))rtv= Math.round(800*30/(ms*m));
+        if(blockName.contains("light_blue_wool"))rtv= Math.round(1500*30/(ms*m));
+        if(blockName.contains("cyan_terracotta")||blockName.contains("Gray Wool"))rtv= Math.round(500*30/(ms*m));
+        if(blockName.contains("polished_diorite"))rtv= Math.round(2000*30/(ms*m));
+        if(blockName.contains("stone"))rtv= Math.round(10*30/(ms*m));
+        if(rtv!=-1) {
+                rtv=rtv+range.getIntValue();
+        }
+        return rtv;
+    }
+
+    public List<BlockPos> getpos() {
+        return pos.stream().map(blockInfo -> blockInfo.blockPos).toList();
+    }
+
+    public int getSize() {
+        return pos.size();
+    }
+
     @EventTarget
     public void onTick(ClientTickEvent e) {
         for (String ke : black.keySet()) {
             black.put(ke, black.get(ke) - 1);
         }
+
+
         pos.clear();
         int range = 12;
         BlockPos blockPos1 = mc.player.getBlockPos();
@@ -190,6 +222,7 @@ public class MiningHelperV2 implements IToggle {
                     if (black.getOrDefault(String.valueOf(Objects.hash(cp.getX(), cp.getY(), cp.getZ())), 0) > 0) {
                         continue;
                     }
+
                     if (isTarget(cp)) {
                         blockPos.add(new BlockInfo(cp, null));
                     }
@@ -238,7 +271,7 @@ public class MiningHelperV2 implements IToggle {
                         if(tick>t)
                         {
                             tick=0;
-                            black.put(Objects.hash(target.getX(), target.getY(), target.getZ())+"", 100);
+                            black.put(Objects.hash(target.getX(), target.getY(), target.getZ()) + "", t + 4);
                             Client.sendDebugMessage(Text.of("next"));
                         }
                     }
@@ -247,7 +280,13 @@ public class MiningHelperV2 implements IToggle {
 //                    client.setKeepBlockBreaking(false);
                 }
             }
-            this.smoothRotation.smoothLook(RotationUtils.toRotation(pos.get(0).lookPos.subtract(mc.player.getEyePos())), 1.3f,null,rclient);
+
+            if (this.following && rclient == false) {
+                clientRotation.clientLook(RotationUtils.toRotation(pos.get(0).lookPos.subtract(mc.player.getEyePos())), 420, null);
+            } else {
+                clientRotation.cancelClientLook();
+            }
+            this.smoothRotation.smoothLook(RotationUtils.toRotation(pos.get(0).lookPos.subtract(mc.player.getEyePos())), 1.2f, null, rclient);
         }else {
             tick=0;
             client.setKeepBlockBreaking(false);
@@ -336,8 +375,6 @@ public class MiningHelperV2 implements IToggle {
     @EventTarget
     public void onRender(WorldRenderEvent e) {
         if(Setting.getInstance().debug.isValue()){
-
-
           LivingEntity player = mc.player;
           int i = 1;
           Vec3d last = null;
@@ -358,6 +395,7 @@ public class MiningHelperV2 implements IToggle {
     public void disable() {
         client.setKeepBlockBreaking(false);
         black.clear();
+        clientRotation.cancelClientLook();
     }
 
     @Override

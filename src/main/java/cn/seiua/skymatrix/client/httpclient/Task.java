@@ -1,23 +1,26 @@
 package cn.seiua.skymatrix.client.httpclient;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.Call;
 
 public class Task<V> {
     private CallBack<V> callBack;
     private Call call;
 
-    private Class type;
+    private TypeReference target;
 
     public CallBack<V> getCallBack() {
         return callBack;
     }
 
-    public Class getType() {
-        return type;
+    public Task(CallBack<V> callBack, Call call, TypeReference type) {
+        this.callBack = callBack;
+        this.call = call;
+        this.target = type;
     }
 
-    public void setType(Class type) {
-        this.type = type;
+    public TypeReference getTarget() {
+        return target;
     }
 
     public void setCallBack(CallBack<V> callBack) {
@@ -32,9 +35,7 @@ public class Task<V> {
         this.call = call;
     }
 
-    public Task(CallBack<V> callBack, Call call, Class type) {
-        this.callBack = callBack;
-        this.call = call;
-        this.type = type;
+    public void setTarget(TypeReference target) {
+        this.target = target;
     }
 }

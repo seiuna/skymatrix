@@ -3,7 +3,7 @@ package cn.seiua.skymatrix.client.module.modules;
 import baritone.api.BaritoneAPI;
 import baritone.api.pathing.goals.GoalBlock;
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.RotationFaker;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
 import cn.seiua.skymatrix.client.waypoint.WaypointEntity;
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.hit.HitResult;

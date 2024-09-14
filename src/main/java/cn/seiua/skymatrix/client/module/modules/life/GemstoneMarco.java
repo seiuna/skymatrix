@@ -1,18 +1,15 @@
 package cn.seiua.skymatrix.client.module.modules.life;
 
-import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.Client;
 import cn.seiua.skymatrix.client.IToggle;
-import cn.seiua.skymatrix.client.SmoothRotation;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
-import cn.seiua.skymatrix.client.module.modules.autphotm.AutoHotm;
 import cn.seiua.skymatrix.client.module.modules.life.test.scripts.RootScript;
-import cn.seiua.skymatrix.client.waypoint.Waypoint;
+import cn.seiua.skymatrix.client.rotation.SmoothRotation;
 import cn.seiua.skymatrix.client.waypoint.WaypointEntity;
 import cn.seiua.skymatrix.client.waypoint.WaypointGroupEntity;
 import cn.seiua.skymatrix.config.Desc;
@@ -25,10 +22,10 @@ import cn.seiua.skymatrix.gui.Theme;
 import cn.seiua.skymatrix.message.Message;
 import cn.seiua.skymatrix.message.MessageBuilder;
 import cn.seiua.skymatrix.render.BlockLocTarget;
-import cn.seiua.skymatrix.utils.*;
-import com.mojang.blaze3d.systems.RenderSystem;
+import cn.seiua.skymatrix.utils.ReflectUtils;
+import cn.seiua.skymatrix.utils.RenderUtilsV2;
+import cn.seiua.skymatrix.utils.RotationUtils;
 import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
 import net.minecraft.network.packet.s2c.play.GameMessageS2CPacket;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -249,7 +246,6 @@ public class GemstoneMarco implements IToggle {
             }
         }
     }
-
     private boolean rotationReady;
     private boolean lock;
     private void rotationReady(){
@@ -297,7 +293,6 @@ public class GemstoneMarco implements IToggle {
                             RaycastContext.ShapeType.OUTLINE,
                             RaycastContext.FluidHandling.ANY,
                             mc.player));
-
                     if(hitResult.getType()== HitResult.Type.BLOCK&&!hitResult.getBlockPos().equals(entity.toBlockPos())){
                         if(tt==null){
                             tt=hitResult.getBlockPos();

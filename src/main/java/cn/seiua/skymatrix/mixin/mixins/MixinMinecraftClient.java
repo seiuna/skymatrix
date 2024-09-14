@@ -11,6 +11,7 @@ import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.client.network.ClientPlayerInteractionManager;
 import net.minecraft.client.option.GameOptions;
+import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.particle.ParticleManager;
 import net.minecraft.client.render.GameRenderer;
 import net.minecraft.client.render.WorldRenderer;
@@ -25,6 +26,7 @@ import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.ModifyArg;
+import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
@@ -120,6 +122,31 @@ public abstract class MixinMinecraftClient {
         return Client.HandleInputBlockBreaking() || breaking;
     }
 
+    @Redirect(
+            at = @At(value = "INVOKE",
+                    target = "net/minecraft/client/option/KeyBinding.isPressed ()Z"),
+            method = "handleInputEvents")
+    public boolean rd_handleBlockBreaking(KeyBinding instance) {
+        if (instance.equals(MinecraftClient.getInstance().options.useKey)) {
+            if (Client.isKeepRightClick() || instance.isPressed()) {
+                return true;
+            }
+        }
+
+        return instance.isPressed();
+    }
+//    @Redirect(
+//            at = @At(value = "INVOKE",
+//                    target = "net/minecraft/client/option/KeyBinding.wasPressed ()Z"),
+//            method = "handleInputEvents")
+//    public boolean rd_handleBlockBreaking2(KeyBinding instance) {
+//        if(instance.equals(MinecraftClient.getInstance().options.useKey)){
+//            if(Client.isKeepRightClick()||instance.wasPressed()){
+//                return true;
+//            }
+//        }
+//        return instance.wasPressed();
+//    }
     /**
      * @author yuuiyi
      * @reason

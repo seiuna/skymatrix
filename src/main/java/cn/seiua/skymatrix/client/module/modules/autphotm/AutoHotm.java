@@ -1,7 +1,9 @@
 package cn.seiua.skymatrix.client.module.modules.autphotm;
 
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.*;
+import cn.seiua.skymatrix.client.Client;
+import cn.seiua.skymatrix.client.HypixelWay;
+import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.Init;
 import cn.seiua.skymatrix.client.component.SModule;
@@ -10,6 +12,8 @@ import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
 import cn.seiua.skymatrix.client.module.modules.life.MiningHelperV2;
+import cn.seiua.skymatrix.client.rotation.Rotation;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
 import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
@@ -23,13 +27,11 @@ import cn.seiua.skymatrix.message.Message;
 import cn.seiua.skymatrix.message.MessageBuilder;
 import cn.seiua.skymatrix.render.BlockLocTarget;
 import cn.seiua.skymatrix.utils.*;
-import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandManager;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.block.Block;
-import net.minecraft.block.StainedGlassBlock;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.screen.ingame.HandledScreen;
 import net.minecraft.client.network.PlayerListEntry;
@@ -628,7 +630,6 @@ public class AutoHotm implements IToggle, Hud {
 
     private void update() {
         if (this.task.equals("submit")) {
-
             if (mc.currentScreen instanceof HandledScreen<?>) {
                 HandledScreen<?> screen = (HandledScreen<?>) mc.currentScreen;
                 Client.sendDebugMessage(Text.of(screen.getTitle().getString()));
@@ -733,7 +734,7 @@ public class AutoHotm implements IToggle, Hud {
 
     private boolean filterB(Block block){
         String name = block.getName().toString();
-        if(name.contains("polished_diorite")||name.contains("light_blue_wool")||name.contains("cyan_terracotta")||name.contains("prismarine'")||name.contains("prismarine_bricks"))
+        if (name.contains("polished_diorite") || name.contains("light_blue_wool") || name.contains("cyan_terracotta") || name.contains("prismarine'") || name.contains("prismarine_bricks") || name.contains("_wool"))
             return true;else return false;
     }
 

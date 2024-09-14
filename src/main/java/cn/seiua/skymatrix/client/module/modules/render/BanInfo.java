@@ -17,6 +17,7 @@ import cn.seiua.skymatrix.hud.Hud;
 import cn.seiua.skymatrix.message.Message;
 import cn.seiua.skymatrix.message.MessageBuilder;
 import cn.seiua.skymatrix.utils.RenderUtils;
+import com.fasterxml.jackson.core.type.TypeReference;
 import net.minecraft.client.util.math.MatrixStack;
 import net.minecraft.util.math.Box;
 
@@ -44,8 +45,9 @@ public class BanInfo implements Hud {
         tick++;
         if (tick % (20 * 60 * 5) == 0) {
             try {
-                httpClient.get("https://api.plancke.io/hypixel/v1/punishmentStats", this::callBack, BanInfoEntity.class);
+                httpClient.get("https://api.plancke.io/hypixel/v1/punishmentStats", this::callBack, new TypeReference<BanInfoEntity>() {
 
+                });
             } catch (IOException ex) {
                 throw new RuntimeException(ex);
             }

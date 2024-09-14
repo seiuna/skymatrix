@@ -48,6 +48,7 @@ public class ClientRotation {
     }
 
     public void cancelServerLook() {
+        this.smoothRotation.running = false;
         smoothRotation.task = null;
     }
 

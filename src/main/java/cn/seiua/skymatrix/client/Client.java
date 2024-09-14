@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 
+import static cn.seiua.skymatrix.SkyMatrix.mc;
+
 @Component
 @Event(register = true)
 @Category(name = "client")
@@ -56,35 +58,45 @@ public final class Client {
         SkyMatrix.mc.attackCooldown= 0;
         return true;
     }
+    public boolean keepRightClick;
+
+    public static boolean isKeepRightClick() {
+        return instance.keepRightClick;
+    }
+
+    public void setKeepRightClick(boolean keepRightClick) {
+        this.keepRightClick = keepRightClick;
+    }
+
     @EventTarget
     private void onHandleKeyInputBeforeEvent(HandleKeyInputBeforeEvent event) {
-        if(!keepBlockBreaking)return;
+        if (!keepBlockBreaking && !keepRightClick) return;
         screen=MinecraftClient.getInstance().currentScreen;
         MinecraftClient.getInstance().currentScreen=null;
     }
+
     @EventTarget
     private void onHandleKeyInputBeforeEvent(HandleKeyInputAfterEvent event) {
-        if(!keepBlockBreaking)return;
+        if (!keepBlockBreaking && !keepRightClick) return;
         if(screen!=null)
             MinecraftClient.getInstance().currentScreen=screen;
     }
+
     @EventTarget
-    private void  doBlackList(BlockBreakingEvent object) {
+    private void doBlackList(BlockBreakingEvent object) {
         if(SkyMatrix.mc.crosshairTarget instanceof BlockHitResult){
             if(blackList.contains(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos().add(0,0,0))||blackList.contains(SkyMatrix.mc.world.getBlockState(((BlockHitResult) SkyMatrix.mc.crosshairTarget).getBlockPos()).getBlock().getName().toString())){
                 object.setCancelled(true);
             }
         }
     }
+
     // block breaking progress end
     @Init(level = 999)
     public void start() {
         root.mkdirs();
         instance = this;
-
-
     }
-
     @EventTarget
     public void registerCommand(CommandRegisterEvent e) {
         e.getDispatcher().register(
@@ -171,10 +183,10 @@ public final class Client {
     }
 
     public void setKeepBlockBreaking(boolean keepBlockBreaking) {
-        this.keepBlockBreaking = keepBlockBreaking;
         if (!keepBlockBreaking) {
-            SkyMatrix.mc.interactionManager.cancelBlockBreaking();
+            mc.interactionManager.cancelBlockBreaking();
         }
+        this.keepBlockBreaking = keepBlockBreaking;
     }
     Screen screen;
 
@@ -234,12 +246,10 @@ public final class Client {
     public static void sendMessage(Text message) {
         assert SkyMatrix.mc.player != null;
         SkyMatrix.mc.player.sendMessage(Text.of("§8[§9S§9k§9y§9M§9a§9t§9r§9i§9x§8]").copy().append(message));
-
     }
 
     public static void sendDebugMessage(Text message) {
         if (!Setting.getInstance().debug.isValue()) return;
-
         SkyMatrix.mc.player.sendMessage(Text.of("§3[§bDebug§3]§7: §r").copy().append(message));
 
     }

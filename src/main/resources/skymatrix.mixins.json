@@ -12,6 +12,7 @@
     "MixinBlockModelRenderer",
     "MixinBlockOcclusionCache",
     "MixinCamera",
+    "MixinChatHud",
     "MixinClientChunkManager",
     "MixinClientCommonNetworkHandler",
     "MixinClientPlayerEntity",

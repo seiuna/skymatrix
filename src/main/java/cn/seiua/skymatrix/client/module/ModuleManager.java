@@ -41,12 +41,11 @@ public class ModuleManager {
 
     @Init(level = 999999)
     public void handle() {
-
+        instance = this;
         modules = new HashMap<>();
         for (Object o : components) {
             Class c = o.getClass();
             Annotation annotation = c.getAnnotation(SModule.class);
-            Event event = (Event) c.getAnnotation(Event.class);
             if (annotation != null) {
                 SModule module = (SModule) annotation;
                 modules.put(getModuleName(module), new ModuleObj(o, false, module.name(), module.category()));
@@ -54,14 +53,11 @@ public class ModuleManager {
                 logger.info("Module loaded: " + c.getName() + " " + getModuleName(module));
             }
         }
-        instance = this;
-        configManager.addCallBack(this::callBack);
+
     }
 
     public void callBack() {
-
         for (Object key : valueHolder.value.keySet()) {
-
             if (modules.containsKey(key)) {
                 Object target = modules.get(key).getTarget();
                 if (valueHolder.value.get(key)) {
@@ -78,13 +74,8 @@ public class ModuleManager {
                         valueHolder.value.put(this.getModuleName(module), true);
                         eventManager.register(target.getClass());
                     }
-
-
                 }
-
             }
-
-
         }
     }
 
@@ -145,21 +136,17 @@ public class ModuleManager {
                 notification.push(new Notice("Module", "Enable " + this.modules.get(moduleName).getName(), NoticeType.INFO));
                 eventManager.register(this.modules.get(moduleName).getTarget().getClass());
                 valueHolder.value.put(moduleName, true);
-
-
             } else {
                 if (flag) toggle.disable();
                 notification.push(new Notice("Module", "Disable " + this.modules.get(moduleName).getName(), NoticeType.INFO));
                 eventManager.unregister(this.modules.get(moduleName).getTarget().getClass());
                 valueHolder.value.put(moduleName, false);
             }
-
         } catch (RuntimeException e) {
             if (e.getMessage() != null) {
                 message.sendWarningMessage(Text.translatable(e.getMessage()).getString());
             }
             e.printStackTrace();
-
         }
 
 

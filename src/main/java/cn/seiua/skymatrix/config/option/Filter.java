@@ -42,6 +42,11 @@ public interface Filter {
         }
         return false;
     }
+
+    static boolean all(ItemStack itemStack) {
+
+        return true;
+    }
     static boolean royal_Pigeon(ItemStack itemStack) {
         if (itemStack.getName().getString().contains("Royal Pigeon")) {
 //        if (itemStack.getName().getString().contains("Jungle")) {

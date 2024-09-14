@@ -1,17 +1,14 @@
 package cn.seiua.skymatrix.client.module.modules.life;
 
-import cn.seiua.skymatrix.SkyMatrix;
 import cn.seiua.skymatrix.client.Client;
 import cn.seiua.skymatrix.client.IToggle;
-import cn.seiua.skymatrix.client.RotationFaker;
-import cn.seiua.skymatrix.client.SmoothRotation;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.ModuleManager;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
-import cn.seiua.skymatrix.client.waypoint.Waypoint;
+import cn.seiua.skymatrix.client.rotation.ClientRotation;
 import cn.seiua.skymatrix.config.Hide;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.*;
@@ -21,11 +18,13 @@ import cn.seiua.skymatrix.event.events.GameMessageEvent;
 import cn.seiua.skymatrix.event.events.ServerPacketEvent;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
 import cn.seiua.skymatrix.gui.Theme;
-import cn.seiua.skymatrix.utils.*;
+import cn.seiua.skymatrix.utils.MathUtils;
+import cn.seiua.skymatrix.utils.ReflectUtils;
+import cn.seiua.skymatrix.utils.RenderUtilsV2;
+import cn.seiua.skymatrix.utils.RotationUtils;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
 import net.minecraft.block.ChestBlock;
-import net.minecraft.block.StonecutterBlock;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
 import net.minecraft.util.hit.BlockHitResult;
@@ -43,7 +42,7 @@ import static cn.seiua.skymatrix.SkyMatrix.mc;
 @Event
 @Sign(sign = Signs.BETA)
 @SModule(name = "PowderMiner", category = "life", disable = true)
-public class PowderMining implements IToggle {
+public class PowderMiner implements IToggle {
     @Use
     private MiningHelperV2 miningHelperV2;
     @Value(name = "keyBind")
@@ -77,6 +76,8 @@ public class PowderMining implements IToggle {
     private Vec3d look = null;
 
     private int countc;
+    @Use
+    ClientRotation clientRotation;
 
     private HashSet<String> blackList = new HashSet<>();
     public void updateNext(){
@@ -110,55 +111,55 @@ public class PowderMining implements IToggle {
     }
     @EventTarget
     public void onTick(ClientTickEvent e) {
-       int range=4;
-       updateNext();
-       int c=0;
-       for(int x=-range;x<range;x++){
-           for(int y=-range;y<range;y++){
-               for(int z=-range;z<range;z++){
-                   BlockPos blockPos = mc.player.getBlockPos().add(x,y,z);
-                   if(this.blackList.contains(blockPos.getX()+" "+blockPos.getY()+" "+blockPos.getZ())){
-                       continue;
-                   }
-                   BlockState blockState = mc.world.getBlockState(blockPos);
-                   Block block = blockState.getBlock();
-                   if(block instanceof ChestBlock){
-                       if(MathUtils.calculateAngle(mc.player.getRotationVec(1),blockPos.toCenterPos().subtract(mc.player.getEyePos()))>anglec.getIntValue()||blockPos.toCenterPos().distanceTo(mc.player.getEyePos())>3){
-                          continue;
-                       }
-                       if(target==null){
-                           target=blockPos;
-                           look=target.toCenterPos();
-                       }
-                       c++;
-                       if(mc.player.getPos().distanceTo(target.toCenterPos())>mc.player.getPos().distanceTo(blockPos.toCenterPos())){
-                           target=blockPos;
-                           if(instant.isValue()){
-                               look=target.toCenterPos();
-                           }
-                       }
-                   }
-               }
-           }
-       }
-       countc=c;
+        int range = 4;
+        updateNext();
+        int c = 0;
+        for (int x = -range; x < range; x++) {
+            for (int y = -range; y < range; y++) {
+                for (int z = -range; z < range; z++) {
+                    BlockPos blockPos = mc.player.getBlockPos().add(x, y, z);
+                    if (this.blackList.contains(blockPos.getX() + " " + blockPos.getY() + " " + blockPos.getZ())) {
+                        continue;
+                    }
+                    BlockState blockState = mc.world.getBlockState(blockPos);
+                    Block block = blockState.getBlock();
+                    if (block instanceof ChestBlock) {
+                        if (MathUtils.calculateAngle(mc.player.getRotationVec(1), blockPos.toCenterPos().subtract(mc.player.getEyePos())) > anglec.getIntValue() || blockPos.toCenterPos().distanceTo(mc.player.getEyePos()) > 3) {
+                            continue;
+                        }
+                        if (target == null) {
+                            target = blockPos;
+                            look = target.toCenterPos();
+                        }
+                        c++;
+                        if (mc.player.getPos().distanceTo(target.toCenterPos()) > mc.player.getPos().distanceTo(blockPos.toCenterPos())) {
+                            target = blockPos;
+                            if (instant.isValue()) {
+                                look = target.toCenterPos();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        countc = c;
         if(mc.options.attackKey.isPressed()||(look!=null&&auto.isValue()&&countc>=count.getIntValue())){
             if(look!=null){
                 Client.instance.setKeepBlockBreaking(true);
-               tool2.switchTo();
-                  if(this.instant.isValue()){
-                      if(mc.crosshairTarget instanceof BlockHitResult&&mc.crosshairTarget.getType()== BlockHitResult.Type.BLOCK){
-                          BlockHitResult blockHitResult = (BlockHitResult) mc.crosshairTarget;
-                          if(blockHitResult.getBlockPos().add(0,0,0).equals(target)&&mc.world.getBlockState(blockHitResult.getBlockPos()).getBlock() instanceof ChestBlock){
-                              mc.options.useKey.setPressed(true);
-                          }
-                      }else{
-                          mc.options.useKey.setPressed(false);
-                      }
-                  }
-               RotationFaker.instance.smoothRotation.smoothLook(RotationUtils.getNeededRotationsFix18(look),2.0f,null,false);
+                tool2.switchTo();
+                if (this.instant.isValue()) {
+                    if (mc.crosshairTarget instanceof BlockHitResult && mc.crosshairTarget.getType() == BlockHitResult.Type.BLOCK) {
+                        BlockHitResult blockHitResult = (BlockHitResult) mc.crosshairTarget;
+                        if (blockHitResult.getBlockPos().add(0, 0, 0).equals(target) && mc.world.getBlockState(blockHitResult.getBlockPos()).getBlock() instanceof ChestBlock) {
+                            mc.options.useKey.setPressed(true);
+                        }
+                    } else {
+                        mc.options.useKey.setPressed(false);
+                    }
+                }
+                clientRotation.smoothRotation.smoothLook(RotationUtils.getNeededRotationsFix18(look), 2.0f, null, false);
 
-              }else {
+            } else {
 
             }
         }else {

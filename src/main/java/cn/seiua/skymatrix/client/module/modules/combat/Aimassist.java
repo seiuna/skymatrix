@@ -1,12 +1,16 @@
 package cn.seiua.skymatrix.client.module.modules.combat;
 
 import cn.seiua.skymatrix.SkyMatrix;
-import cn.seiua.skymatrix.client.*;
+import cn.seiua.skymatrix.client.Client;
+import cn.seiua.skymatrix.client.HypixelWay;
+import cn.seiua.skymatrix.client.IToggle;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.SModule;
 import cn.seiua.skymatrix.client.component.Use;
 import cn.seiua.skymatrix.client.module.Sign;
 import cn.seiua.skymatrix.client.module.Signs;
+import cn.seiua.skymatrix.client.rotation.RotationFaker;
+import cn.seiua.skymatrix.client.rotation.SmoothRotation;
 import cn.seiua.skymatrix.config.Value;
 import cn.seiua.skymatrix.config.option.KeyBind;
 import cn.seiua.skymatrix.config.option.SingleChoice;
@@ -14,16 +18,14 @@ import cn.seiua.skymatrix.config.option.ValueSlider;
 import cn.seiua.skymatrix.event.EventTarget;
 import cn.seiua.skymatrix.event.events.ClientTickEvent;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
-import cn.seiua.skymatrix.utils.*;
-import com.mojang.blaze3d.systems.RenderSystem;
+import cn.seiua.skymatrix.utils.MathUtils;
+import cn.seiua.skymatrix.utils.ReflectUtils;
+import cn.seiua.skymatrix.utils.RotationUtils;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.mob.MobEntity;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.math.Box;
 import net.minecraft.util.math.Vec3d;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
