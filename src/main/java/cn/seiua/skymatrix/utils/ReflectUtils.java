@@ -16,11 +16,16 @@ import java.util.Map;
 public class ReflectUtils {
 
     private static boolean withAnnotation1(Class c, Class target) {
+
         for (Annotation an : c.getAnnotations()) {
             if (an.annotationType() == target) {
                 return true;
             }
+
             if (!(an instanceof Retention || an instanceof Target || an instanceof Documented)) {
+                if (c.getName().contains("kotlin")) {
+                    return false;
+                }
                 return withAnnotation1(an.annotationType(), target);
             }
 

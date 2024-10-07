@@ -7,6 +7,7 @@ import cn.seiua.skymatrix.client.auth.rp.RpCode;
 import cn.seiua.skymatrix.client.auth.rp.RpLogin;
 import cn.seiua.skymatrix.client.auth.rp.RpRegister;
 import cn.seiua.skymatrix.client.auth.rq.RqLogin;
+import cn.seiua.skymatrix.client.auth.rq.RqRegister;
 import cn.seiua.skymatrix.client.component.Component;
 import cn.seiua.skymatrix.client.component.Event;
 import cn.seiua.skymatrix.client.component.Use;
@@ -59,7 +60,9 @@ public class Authenticator {
                                 ClientCommandManager.literal("register").then(ClientCommandManager.argument("username", StringArgumentType.string())
                                         .then(ClientCommandManager.argument("password", StringArgumentType.string())
                                                 .then(ClientCommandManager.argument("invite_code", StringArgumentType.string())
-                                                        .executes(this::register)
+                                                        .then(ClientCommandManager.argument("email", StringArgumentType.string())
+                                                                .executes(this::register)
+                                                        )
                                                 )
                                         )
                                 )
@@ -96,6 +99,21 @@ public class Authenticator {
 
     public int register(CommandContext<FabricClientCommandSource> context) {
         System.out.println("register");
+        String username = StringArgumentType.getString(context, "username");
+        String password = StringArgumentType.getString(context, "password");
+        String inviteCode = StringArgumentType.getString(context, "invite_code");
+        String email = StringArgumentType.getString(context, "email");
+        try {
+            httpClient.post(getUrl("/public/register"),
+                    this::registerCallBack,
+                    new TypeReference<Response<RpRegister>>() {
+                    },
+                    new RqRegister(email, password, username, inviteCode),
+                    null
+            );
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return 0;
     }
 
@@ -128,6 +146,10 @@ public class Authenticator {
     }
 
     public void registerCallBack(Response<RpRegister> data, String raw) {
+
+        System.out.println(
+                data
+        );
         System.out.println("registerCallBack");
     }
 

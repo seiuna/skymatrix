@@ -59,7 +59,7 @@ public class AntiCheckProvider {
                             double cc = distance - this.players_ds.get(uuid);
                             if (cc < 0) {
                                 new PlayerCloseEvent(distance, cc).call();
-                                Client.sendDebugMessage(Text.of("closing   " + entity.getName().getString() + "     " + (float) cc * 10 + "  " + (float) distance));
+//                                Client.sendDebugMessage(Text.of("closing   " + entity.getName().getString() + "     " + (float) cc * 10 + "  " + (float) distance));
                             }
                             this.players_ds.put(uuid, distance);
                         } else {

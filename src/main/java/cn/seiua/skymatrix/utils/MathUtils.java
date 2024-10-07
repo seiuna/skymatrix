@@ -24,6 +24,50 @@ public class MathUtils {
         return angleInDegrees;
     }
 
+    public static Vec2f getIntersectionPoint(Vec2f p1, Vec2f p2) {
+        float x1 = p1.x;
+        float y1 = p1.y;
+        float x2 = p2.x;
+        float y2 = p2.y;
+
+        // Assuming the second vector is from origin (0,0) to (x2, y2)
+        float denominator = y2 * x1 - x2 * y1;
+
+
+        float ua = (x2 * y1 - y2 * x1) / denominator;
+
+        float intersectionX = x1 + ua * (x2 - x1);
+        float intersectionY = y1 + ua * (y2 - y1);
+        return new Vec2f(intersectionX, intersectionY);
+
+    }
+
+    public static Vec2f getIntersectionPoint(Vec2f p1, Vec2f p2, Vec2f p3, Vec2f p4) {
+        float x1 = p1.x;
+        float y1 = p1.y;
+        float x2 = p2.x;
+        float y2 = p2.y;
+        float x3 = p3.x;
+        float y3 = p3.y;
+        float x4 = p4.x;
+        float y4 = p4.y;
+
+        float denominator = (y4 - y3) * (x2 - x1) - (x4 - x3) * (y2 - y1);
+        if (denominator == 0) {
+            return null; // Lines are parallel or coincident
+        }
+
+        float ua = ((x4 - x3) * (y1 - y3) - (y4 - y3) * (x1 - x3)) / denominator;
+        float ub = ((x2 - x1) * (y1 - y3) - (y2 - y1) * (x1 - x3)) / denominator;
+
+        if (ua >= 0 && ua <= 1 && ub >= 0 && ub <= 1) {
+            float intersectionX = x1 + ua * (x2 - x1);
+            float intersectionY = y1 + ua * (y2 - y1);
+            return new Vec2f(intersectionX, intersectionY);
+        }
+
+        return null; // No intersection within the line segments
+    }
     public static Vec3d calculateCenter(List<WaypointEntity> entityList) {
         if (entityList == null || entityList.isEmpty()) {
             return null;

@@ -40,6 +40,8 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.decoration.ArmorStandEntity;
 import net.minecraft.network.packet.Packet;
 import net.minecraft.network.packet.s2c.play.ParticleS2CPacket;
+import net.minecraft.network.packet.s2c.play.PlayerPositionLookS2CPacket;
+import net.minecraft.network.packet.s2c.play.PositionFlag;
 import net.minecraft.sound.SoundEvents;
 import net.minecraft.text.Text;
 import net.minecraft.util.Hand;
@@ -378,7 +380,7 @@ public class PowderMinerP extends PowderMiner implements IToggle {
             weapon.switchTo();
             if (!clientRotation.smoothRotation.running) {
                 clientRotation.cancelClientLook();
-                clientRotation.smoothRotation.smoothLook(RotationUtils.toRotation(targetMob.getEyePos().subtract(0, -0.5, 0).subtract(mc.player.getEyePos())), 3.3f, this::mobRTReady, true);
+                clientRotation.smoothRotation.smoothLook(RotationUtils.toRotation(targetMob.getEyePos().subtract(0, -4, 0).subtract(mc.player.getEyePos())), 3.3f, this::mobRTReady, true);
             }
             if (tickTimer > 2) {
                 client.setKeepRightClick(true);
@@ -403,7 +405,7 @@ public class PowderMinerP extends PowderMiner implements IToggle {
         for (Entity entity : mc.world.getEntities()) {
             if (entity == mc.player) continue;
             if (entity instanceof ArmorStandEntity && entity.isAlive() && entity.getDisplayName().getString().contains("[") && !entity.getDisplayName().getString().contains("Golden") && !entity.getDisplayName().getString().contains("Member")) {
-                if (mc.player.distanceTo(entity) > range.getValue().doubleValue()) continue;
+                if (mc.player.distanceTo(entity) > 6) continue;
                 if (entity.getDisplayName().getString().contains(" 0/")) continue;
                 if (targetMob == null) {
                     targetMob = entity;
@@ -452,7 +454,7 @@ public class PowderMinerP extends PowderMiner implements IToggle {
                         if (countBlock(blockPos) > 10) {
                             to = blockPos;
                             to = findForTo();
-                            if (mc.world.getBlockState(to).isAir()) {
+                            if (to == null || mc.world.getBlockState(to).isAir()) {
                                 to = null;
                                 continue;
                             }
@@ -617,29 +619,31 @@ public class PowderMinerP extends PowderMiner implements IToggle {
 //            return;
 //        }
 
-        if ((this.pathing_failed >= 60 || this.pathing_failed == -1) && this.aotv.slot() != -1) {
-            mc.options.sneakKey.setPressed(true);
-            if (canAotvTo()) {
-                this.aotv.switchTo();
-                BlockPos t = this.status.equals("chest") ? target_chest_node : to;
-                if (pathing_failed != -1) {
-                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
-                    clientRotation.cancelServerLook();
-                    clientRotation.cancelClientLook();
-                    pathing_failed = -1;
-                    this.clientRotation.smoothRotation.smoothLook(RotationUtils.getNeededRotationsFix18(t.toCenterPos().add(0, 0.4, 0)), 2.4f, this::processAotvTo, true);
-                }
-                return;
-            } else {
-                if (this.status.equals("chest")) {
-                    this.blackList.add(target_chest.getX() + " " + target_chest.getY() + " " + target_chest.getZ());
-                }
-                if (this.status.equals("default")) {
-                    this.blackList.add(to.getX() + " " + to.getY() + " " + to.getZ());
-                }
-                return;
-            }
-        }
+//        if ((this.pathing_failed >= 60 || this.pathing_failed == -1) && this.aotv.slot() != -1) {
+//            mc.options.sneakKey.setPressed(true);
+//            if (canAotvTo()) {
+//                this.aotv.switchTo();
+//                BlockPos t = this.status.equals("chest") ? target_chest_node : to;
+//                if (pathing_failed != -1) {
+//                    BaritoneAPI.getProvider().getPrimaryBaritone().getPathingBehavior().cancelEverything();
+//                    clientRotation.cancelServerLook();
+//                    clientRotation.cancelClientLook();
+//                    pathing_failed = -1;
+//                    this.clientRotation.smoothRotation.smoothLook(RotationUtils.getNeededRotationsFix18(t.toCenterPos().add(0, 0.4, 0)), 2.4f, this::processAotvTo, true);
+//                }
+//                return;
+//            } else {
+//                if (this.status.equals("chest")) {
+//                    this.blackList.add(target_chest.getX() + " " + target_chest.getY() + " " + target_chest.getZ());
+//                    pathing_failed = -0;
+//                }
+//                if (this.status.equals("default")) {
+//                    this.blackList.add(to.getX() + " " + to.getY() + " " + to.getZ());
+//                    pathing_failed = -0;
+//                }
+//                return;
+//            }
+//        }
 //        message.sendMessage(Text.of(miningHelperV2.getSize()+""));
         if (mc.crosshairTarget instanceof BlockHitResult) {
             BlockHitResult hitResult = (BlockHitResult) mc.crosshairTarget;
@@ -673,7 +677,9 @@ public class PowderMinerP extends PowderMiner implements IToggle {
         if (status.equals("default")) {
             updateNext();
         }
-
+        if (status.equals("doMob")) {
+            return;
+        }
 
         if (target != null) {
             if (!(mc.world.getBlockState(target).getBlock() instanceof ChestBlock) || target.toCenterPos().distanceTo(mc.player.getEyePos()) > 3) {
@@ -869,6 +875,24 @@ public class PowderMinerP extends PowderMiner implements IToggle {
             }
 
         }
+        if (packet instanceof PlayerPositionLookS2CPacket) {
+            PlayerPositionLookS2CPacket p = (PlayerPositionLookS2CPacket) packet;
+            if (!p.getFlags().contains((Object) PositionFlag.X_ROT) || (!p.getFlags().contains((Object) PositionFlag.Y_ROT))) {
+                boolean bl = p.getFlags().contains((Object) PositionFlag.X);
+                boolean bl2 = p.getFlags().contains((Object) PositionFlag.Y);
+                boolean bl3 = p.getFlags().contains((Object) PositionFlag.Z);
+                if ((!bl) || (!bl2) || (!bl3)) {
+                    if (new Vec3d(p.getX(), p.getY(), p.getZ()).distanceTo(mc.player.getPos()) > 1.4) {
+                        if (this.aotv.slot() != mc.player.getInventory().selectedSlot) {
+                            escape("被未知的东西旋转");
+                        }
+                    }
+
+
+                }
+            }
+        }
+
     }
 
     public boolean escape(String reason) {
@@ -876,9 +900,10 @@ public class PowderMinerP extends PowderMiner implements IToggle {
         if (this.status.equals("stop")) {
             return false;
         }
-        this.status = "stop";
+
         String c = "警告";
         if (!warning.isValue()) {
+            this.status = "stop";
             ModuleManager.instance.disable(this);
             c = "逃逸";
         }
@@ -905,12 +930,12 @@ public class PowderMinerP extends PowderMiner implements IToggle {
 
     @EventTarget
     public void onAntiCheck(ServerRotationEvent event) {
-        escape("被未知的东西旋转");
+//        escape("被未知的东西旋转");
     }
 
     @EventTarget
     public void onAntiCheck(LookLockEvent event) {
-        escape("被未知的东西旋转");
+        escape("有人一直看着你");
     }
 
 

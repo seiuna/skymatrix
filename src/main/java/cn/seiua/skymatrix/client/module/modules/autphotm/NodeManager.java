@@ -17,7 +17,7 @@ import cn.seiua.skymatrix.message.Message;
 import cn.seiua.skymatrix.message.MessageBuilder;
 import cn.seiua.skymatrix.render.BlockLocTarget;
 import cn.seiua.skymatrix.utils.MathUtils;
-import cn.seiua.skymatrix.utils.RenderUtils;
+import cn.seiua.skymatrix.utils.RenderUtilsV2;
 import com.google.gson.Gson;
 import com.google.gson.internal.LinkedTreeMap;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -96,7 +96,6 @@ public class NodeManager implements Hud {
 
     private void delete() {
         if (!Setting.getInstance().debug.isValue()) return;
-
         if (mode.equals("select")) {
             if (selecting != null) {
                 nodes.remove(selecting);
@@ -112,6 +111,7 @@ public class NodeManager implements Hud {
     private void up() {
         if (!Setting.getInstance().debug.isValue()) return;
         for (Node node : nodes) {
+
             node.roundssav.clear();
             node.rounds.clear();
             for (Node nn : nodes) {
@@ -119,15 +119,12 @@ public class NodeManager implements Hud {
                     continue;
                 }
                 BlockHitResult hitResult = SkyMatrix.mc.world.raycast(new RaycastContext(node.toBlockPos().toCenterPos().add(0, 2.04, 0), nn.toBlockPos().toCenterPos().add(0, 0.48, 0), RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, SkyMatrix.mc.player));
-
 //                BlockHitResult hitResult = SkyMatrix.mc.world.raycast(new RaycastContext(node.toBlockPos().toCenterPos().add(0, 2, 0), nn.toBlockPos().toCenterPos().add(0, 0.48, 0), RaycastContext.ShapeType.OUTLINE, RaycastContext.FluidHandling.NONE, SkyMatrix.mc.player));
                 if (hitResult.getBlockPos().equals(nn.toBlockPos())) {
                     node.rounds.add(nn);
                     node.roundssav.add(nn.id);
                     Client.sendDebugMessage(Text.of("§r添加成功" + nn.toBlockPos().toString()));
                 }
-
-
             }
         }
 
@@ -270,106 +267,95 @@ public class NodeManager implements Hud {
 
     @EventTarget
     public void onRender(WorldRenderEvent e) {
-//        if (!Setting.getInstance().debug.isValue()) return;
-//        HitResult hitResult = SkyMatrix.mc.player.raycast(100, e.getTickDelta(), false);
-//        current = ((BlockHitResult) hitResult).getBlockPos();
-//        if (current != null) {
-//            if (SkyMatrix.mc.world.isAir(current)) {
-//                current = null;
-//            }
-//        }
-//        if (blocked != null) {
-//            RenderUtils.translateView(e.getMatrixStack());
-//            RenderSystem.disableDepthTest();
-//            BlockLocTarget blockLocTarget = new BlockLocTarget(blocked, Theme.getInstance().THEME_UI_ERROR::geColor);
-//            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-//            RenderSystem.enableDepthTest();
-//        }
-//        if (current != null) {
-//            RenderUtils.translateView(e.getMatrixStack());
-//            RenderSystem.disableDepthTest();
-//            BlockLocTarget blockLocTarget = new BlockLocTarget(((BlockHitResult) hitResult).getBlockPos(), Theme.getInstance().THEME::geColor);
-//            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-//            RenderSystem.enableDepthTest();
-//        }
-//        // 计算夹角最小的节点
-//        double min = Double.MAX_VALUE;
-//        Node minNode = null;
-//        for (Node node : nodes) {
-//            double tv = MathUtils.calculateAngle(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()), node.toBlockPos().toCenterPos().subtract(SkyMatrix.mc.player.getCameraPosVec(e.getTickDelta())));
-//            if (tv < min) {
-//                min = tv;
-//                minNode = node;
-//            }
-//        }
-//        if (!mode.equals("edit")) {
-//            selected = minNode;
-//
-//        }
-//        selecting = minNode;
-//
-//
-//        drawSelected(e, selected);
-//        drawSelected(e, selecting);
-//        if (mode.equals("select")) {
-//            if (selecting != null) {
-//                for (Node round : selecting.getRounds()) {
-//                    RenderSystem.disableDepthTest();
-//
-//                    RenderUtils.drawLine(e.getMatrixStack(), selecting.toBlockPos(), round.toBlockPos());
-//
-//                }
-//            }
-//
-//        }
-//        if (autoHotm.renderNodes.isValue()) {
-//            Node last = null;
-//            for (Node node : targets) {
-//                RenderUtils.translateView(e.getMatrixStack());
-//                RenderSystem.disableDepthTest();
-//                BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
-//                blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-//                if (last != null)
-//                    RenderUtils.drawLine(e.getMatrixStack(), blockLocTarget.getPos(), last.toBlockPos());
-//
-//                RenderSystem.enableDepthTest();
-//                last = node;
-//            }
-//            for (Node node : nodes) {
-//                RenderUtils.translateView(e.getMatrixStack());
-//                RenderSystem.disableDepthTest();
-//                BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().UNSELECTED::geColor);
-//
-//                if (!node.equals(selected) && !node.equals(selecting) && !targets.contains(node)) {
-//                    blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-//                    if (mode.equals("edit")) {
-//                        for (Node round : node.getRounds()) {
-//                            RenderUtils.drawLine(e.getMatrixStack(), blockLocTarget.getPos(), round.toBlockPos());
-//
-//                        }
-//                    }
-//                }
-//                RenderSystem.enableDepthTest();
-//            }
-//        }
+        if (!Setting.getInstance().debug.isValue()) return;
+        HitResult hitResult = SkyMatrix.mc.player.raycast(100, e.getTickDelta(), false);
+        current = ((BlockHitResult) hitResult).getBlockPos();
+        if (current != null) {
+            if (SkyMatrix.mc.world.isAir(current)) {
+                current = null;
+            }
+        }
+        if (blocked != null) {
+            RenderSystem.disableDepthTest();
+            BlockLocTarget blockLocTarget = new BlockLocTarget(blocked, Theme.getInstance().THEME_UI_ERROR::geColor);
+            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+            RenderSystem.enableDepthTest();
+        }
+        if (current != null) {
+            RenderSystem.disableDepthTest();
+            BlockLocTarget blockLocTarget = new BlockLocTarget(((BlockHitResult) hitResult).getBlockPos(), Theme.getInstance().THEME::geColor);
+            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+            RenderSystem.enableDepthTest();
+        }
+        // 计算夹角最小的节点
+        double min = Double.MAX_VALUE;
+        Node minNode = null;
+        for (Node node : nodes) {
+            double tv = MathUtils.calculateAngle(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()), node.toBlockPos().toCenterPos().subtract(SkyMatrix.mc.player.getCameraPosVec(e.getTickDelta())));
+            if (tv < min) {
+                min = tv;
+                minNode = node;
+            }
+        }
+        if (!mode.equals("edit")) {
+            selected = minNode;
+
+        }
+        selecting = minNode;
+
+
+        drawSelected(e, selected);
+        drawSelected(e, selecting);
+        if (mode.equals("select")) {
+            if (selecting != null) {
+                for (Node round : selecting.getRounds()) {
+                    RenderSystem.disableDepthTest();
+                    RenderUtilsV2.renderLine(e.getMatrixStack(), selecting.toBlockPos(), round.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED.value, 1);
+                }
+            }
+
+        }
+        if (autoHotm.renderNodes.isValue()) {
+            Node last = null;
+            for (Node node : targets) {
+                RenderSystem.disableDepthTest();
+                BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
+                blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+                if (last != null)
+                    RenderUtilsV2.renderLine(e.getMatrixStack(), blockLocTarget.getPos(), last.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED.value, 1);
+                RenderSystem.enableDepthTest();
+                last = node;
+            }
+            for (Node node : nodes) {
+                RenderSystem.disableDepthTest();
+                BlockLocTarget blockLocTarget = new BlockLocTarget(node.toBlockPos(), Theme.getInstance().UNSELECTED::geColor);
+
+                if (!node.equals(selected) && !node.equals(selecting) && !targets.contains(node)) {
+                    blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+                    if (mode.equals("edit")) {
+                        for (Node round : node.getRounds()) {
+                            RenderUtilsV2.renderLine(e.getMatrixStack(), blockLocTarget.getPos(), round.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED.value, 1);
+
+                        }
+                    }
+                }
+                RenderSystem.enableDepthTest();
+            }
+        }
 
 
     }
 
     private void drawSelected(WorldRenderEvent e, Node selecting) {
-//        if (selecting != null) {
-//            RenderUtils.translateView(e.getMatrixStack());
-//            RenderSystem.disableDepthTest();
-//            BlockLocTarget blockLocTarget = new BlockLocTarget(selecting.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
-//            RenderUtils.setColor(Theme.getInstance().THEME_UI_SELECTED.geColor());
-//            RenderUtils.drawLine(e.getMatrixStack(), SkyMatrix.mc.player.getClientCameraPosVec(e.getTickDelta()).add(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(0.2, 0.2, 0.2)), selecting.toBlockPos().toCenterPos());
-//            RenderUtils.setColor(Theme.getInstance().THEME_UI_ERROR.geColor());
-//            RenderUtils.drawLine(e.getMatrixStack(), selected.toBlockPos().toCenterPos().add(0, 1.54, 0), SkyMatrix.mc.player.getClientCameraPosVec(e.getTickDelta()).add(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(0.2, 0.2, 0.2)));
-//            RenderUtils.drawLine(e.getMatrixStack(), this.selecting.toBlockPos().toCenterPos().add(0, 0.5, 0), SkyMatrix.mc.player.getClientCameraPosVec(e.getTickDelta()).add(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(0.2, 0.2, 0.2)));
-//            RenderUtils.resetColor();
-//            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
-//            RenderSystem.enableDepthTest();
-//        }
+        if (selecting != null) {
+            RenderSystem.disableDepthTest();
+            BlockLocTarget blockLocTarget = new BlockLocTarget(selecting.toBlockPos(), Theme.getInstance().THEME_UI_SELECTED::geColor);
+            RenderUtilsV2.renderLine(e.getMatrixStack(), SkyMatrix.mc.player.getClientCameraPosVec(e.getTickDelta()).add(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(0.2, 0.2, 0.2)), selecting.toBlockPos().toCenterPos(), Theme.getInstance().THEME_UI_SELECTED.value, 1);
+            RenderUtilsV2.renderLine(e.getMatrixStack(), selected.toBlockPos().toCenterPos().add(0, 1.54, 0), SkyMatrix.mc.player.getClientCameraPosVec(e.getTickDelta()).add(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(0.2, 0.2, 0.2)), Theme.getInstance().THEME_UI_ERROR.value, 1);
+            RenderUtilsV2.renderLine(e.getMatrixStack(), this.selecting.toBlockPos().toCenterPos().add(0, 0.5, 0), SkyMatrix.mc.player.getClientCameraPosVec(e.getTickDelta()).add(SkyMatrix.mc.player.getRotationVec(e.getTickDelta()).multiply(0.2, 0.2, 0.2)), Theme.getInstance().THEME_UI_ERROR.value, 1);
+            blockLocTarget.render(e.getMatrixStack(), e.getTickDelta());
+            RenderSystem.enableDepthTest();
+        }
     }
 
     @EventTarget

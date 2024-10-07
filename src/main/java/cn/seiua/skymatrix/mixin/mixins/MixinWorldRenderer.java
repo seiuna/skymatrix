@@ -1,9 +1,7 @@
 package cn.seiua.skymatrix.mixin.mixins;
 
-import cn.seiua.skymatrix.client.waypoint.Waypoint;
 import cn.seiua.skymatrix.event.events.WorldRenderEvent;
 import com.llamalad7.mixinextras.injector.ModifyExpressionValue;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
 import net.minecraft.client.render.*;
 import net.minecraft.client.util.math.MatrixStack;
 import org.joml.Matrix4f;
@@ -14,12 +12,14 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(WorldRenderer.class)
 public abstract class MixinWorldRenderer {
-    WorldRenderEvent context = new WorldRenderEvent(null,null,null);
+    WorldRenderEvent context = WorldRenderEvent.getInstance();
     @Inject(method = "render", at = @At("HEAD"))
     private void beforeRender(RenderTickCounter tickCounter, boolean renderBlockOutline, Camera camera, GameRenderer gameRenderer, LightmapTextureManager lightmapTextureManager, Matrix4f positionMatrix, Matrix4f projectionMatrix, CallbackInfo ci) {
         context.setCamera(camera);
         context.setGameRenderer(gameRenderer);
         context.setTickCounter(tickCounter);
+        context.setPositionMatrix(positionMatrix);
+        context.setProjectionMatrix(projectionMatrix);
         context.setTickDelta(tickCounter.getTickDelta(true));
     }
     @ModifyExpressionValue(method = "render", at = @At(value = "NEW", target = "net/minecraft/client/util/math/MatrixStack"))

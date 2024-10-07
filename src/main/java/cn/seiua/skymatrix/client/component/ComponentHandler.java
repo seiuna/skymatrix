@@ -83,7 +83,7 @@ public class ComponentHandler {
     }
 
     private static void addClass(String c) {
-        if (c.startsWith(MYPACKAGE)) {
+        if (c.startsWith(MYPACKAGE) || c.startsWith("moe.seiua.skymatrix")) {
             if (!c.startsWith(MYMIXINPACKAGE)) {
                 clazzs.add(c);
             }

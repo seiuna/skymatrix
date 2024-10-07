@@ -4,14 +4,14 @@ public class RqRegister {
     private String email;
     private String username;
     private String password;
-    private String inviteCode;
+    private String invite_code;
 
     // Constructor
     public RqRegister(String email, String username, String password, String inviteCode) {
         this.email = email;
         this.username = username;
         this.password = password;
-        this.inviteCode = inviteCode;
+        this.invite_code = inviteCode;
     }
 
     // Default Constructor
@@ -44,11 +44,11 @@ public class RqRegister {
     }
 
     public String getInviteCode() {
-        return inviteCode;
+        return invite_code;
     }
 
     public void setInviteCode(String inviteCode) {
-        this.inviteCode = inviteCode;
+        this.invite_code = inviteCode;
     }
 
     @Override
@@ -57,7 +57,7 @@ public class RqRegister {
                 "email='" + email + '\'' +
                 ", username='" + username + '\'' +
                 ", password='" + password + '\'' +
-                ", inviteCode='" + inviteCode + '\'' +
+                ", inviteCode='" + invite_code + '\'' +
                 '}';
     }
 }

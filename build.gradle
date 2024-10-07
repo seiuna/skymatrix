@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.objectweb.asm.ClassReader
 import org.objectweb.asm.tree.ClassNode
 
@@ -8,12 +9,15 @@ import java.util.jar.JarOutputStream
 plugins {
     id 'fabric-loom' version '1.7-SNAPSHOT'
     id 'maven-publish'
+    id 'org.jetbrains.kotlin.jvm' version '1.9.24'
 }
+
 
 version = project.mod_version
 group = project.maven_group
 
 repositories {
+    mavenCentral()
     maven { url "https://maven.terraformersmc.com/releases" }
     maven { url "https://maven.shedaniel.me/" }
     maven { url "https://maven.isxander.dev/releases" }
@@ -26,9 +30,34 @@ loom {
         useLegacyMixinAp = false
     }
 }
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
+kotlin {
+    jvmToolchain(21)
+}
 
+tasks.withType(JavaCompile).configureEach {
+    it.options.release = 21
+}
+
+//设置工具链
+
+compileKotlin {
+    compilerOptions {
+        suppressWarnings = true
+        jvmTarget = JvmTarget.JVM_21
+    }
+}
 dependencies {
+
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.8+kotlin.1.9.0")
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0'
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0'
+
     implementation files("libs/baritone-api-1.10.1.jar")
     implementation 'com.alibaba:fastjson:2.0.28'
     implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '5.0.0-alpha.11'
@@ -49,7 +78,7 @@ dependencies {
     // EMI
     modCompileOnly "dev.emi:emi-fabric:${project.emi_version}:api"
 
-    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.17+kotlin.1.9.22")
+    modImplementation("net.fabricmc:fabric-language-kotlin:1.10.21+kotlin.1.9.22")
 }
 
 base {
@@ -65,7 +94,6 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-    // Minecraft 1.18 (1.18-pre2) upwards uses Java 21.
     it.options.release = 21
 }
 
@@ -110,6 +138,15 @@ tasks.withType(Javadoc).configureEach {
 tasks.register("split", SplitTask)
 build {
     finalizedBy("split")
+}
+sourceSets {
+    main {
+        main.kotlin.srcDirs += 'src/main/kotlin'
+        main.java.srcDirs += 'src/main/java'
+    }
+}
+kotlin {
+    jvmToolchain(21)
 }
 // configure the maven publication
 publishing {

@@ -15,7 +15,9 @@ public class MixinInGameHud {
 
     @Inject(method = "render", at = @At(value = "TAIL"), slice = @Slice(from = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/hud/PlayerListHud;render(Lnet/minecraft/client/util/math/MatrixStack;ILnet/minecraft/scoreboard/Scoreboard;Lnet/minecraft/scoreboard/ScoreboardObjective;)V")))
     public void render(DrawContext context, RenderTickCounter tickCounter, CallbackInfo ci) {
-        new HudRenderEvent(context, tickCounter.getTickDelta(true)).call();
+        HudRenderEvent.instance.setContext(context);
+        HudRenderEvent.instance.setTickDelta(tickCounter.getTickDelta(true));
+        HudRenderEvent.instance.call();
     }
 
 

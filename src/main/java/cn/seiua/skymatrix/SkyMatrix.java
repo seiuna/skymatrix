@@ -13,6 +13,8 @@ import net.minecraft.command.CommandRegistryAccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static moe.seiua.skymatrix.loader.InjectionKt.setupInjection;
+
 
 public class SkyMatrix implements ModInitializer, ClientTickEvents.StartTick {
     public static final String MODID = "skymatrix";
@@ -26,7 +28,7 @@ public class SkyMatrix implements ModInitializer, ClientTickEvents.StartTick {
 
     @Override
     public void onInitialize() {
-
+        setupInjection();
         ClientCommandRegistrationCallback.EVENT.register(SkyMatrix::registerCommands);
         ClientTickEvents.START_CLIENT_TICK.register(this);
 

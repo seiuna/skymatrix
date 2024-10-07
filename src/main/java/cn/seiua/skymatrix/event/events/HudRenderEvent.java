@@ -9,6 +9,8 @@ public class HudRenderEvent extends Event {
 
     private float tickDelta;
 
+    public static HudRenderEvent instance = new HudRenderEvent(null, 0);
+
     public HudRenderEvent(DrawContext drawContext, float tickDelta) {
         this.drawContext = drawContext;
         this.tickDelta = tickDelta;
